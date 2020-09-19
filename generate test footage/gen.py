@@ -5,7 +5,7 @@ import random
 import imageio
 import glob
 import os
-
+import numpy as np
 
 def getRandomColorString():
     return '#{:06x}'.format(random.randint(0, 256**3))
@@ -27,6 +27,7 @@ outputPath = os.path.join(dirname, 'out.mp4')
 # creating new Image object 
 def genImages():
     counter = 0
+    writer = imageio.get_writer(outputPath, fps=fps)
     for i in range(numberOfEvents):
 
         objectWidth = (5 + random.randint(0, 5)) * xmax / 100 
@@ -52,7 +53,10 @@ def genImages():
             img1 = ImageDraw.Draw(img)   
             
             img1.rectangle(objectShape, fill = color) 
-            img.save( imagesPath + str(counter).zfill(6) + imageType)
+            #img.save( imagesPath + str(counter).zfill(6) + imageType)
+            writer.append_data(np.array(img))
+            
+    writer.close()
 
 def makeVideo():
     fileList = []
@@ -72,5 +76,5 @@ def deleteImages():
         os.remove(f)
 
 genImages()
-makeVideo()
+#makeVideo()
 #deleteImages()
