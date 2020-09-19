@@ -18,6 +18,8 @@ length = .1
 numberOfEvents = 3
 dirname = os.path.dirname(__file__)
 
+imageType = ".png"
+
 imagesPath = os.path.join(dirname, 'images')+"/"
 outputPath = os.path.join(dirname, 'out.mp4')
 
@@ -50,7 +52,7 @@ def genImages():
             img1 = ImageDraw.Draw(img)   
             
             img1.rectangle(objectShape, fill = color) 
-            img.save( imagesPath + str(counter).zfill(6) + ".png")
+            img.save( imagesPath + str(counter).zfill(6) + imageType)
 
 def makeVideo():
     fileList = []
@@ -64,5 +66,11 @@ def makeVideo():
         writer.append_data(imageio.imread(im))
     writer.close()
 
+def deleteImages():
+    filelist = glob.glob(os.path.join(imagesPath, "*" + imageType))
+    for f in filelist:
+        os.remove(f)
+
 genImages()
 makeVideo()
+#deleteImages()
