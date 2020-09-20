@@ -4,7 +4,7 @@ import datetime
 import imutils
 import time
 import cv2
-
+import os
 
 import traceback
 import _thread
@@ -13,7 +13,7 @@ import _thread
 
 def compare():
     try:
-        url = "1.mp4"
+        url = os.path.join(os.path.dirname(__file__), "./generate test footage/out.mp4")
 
         min_area = 100
         max_area = 30000

@@ -23,8 +23,6 @@ imageType = ".png"
 imagesPath = os.path.join(dirname, 'images')+"/"
 outputPath = os.path.join(dirname, 'out.mp4')
 
-
-# creating new Image object 
 def genImages():
     counter = 0
     writer = imageio.get_writer(outputPath, fps=fps)
@@ -55,16 +53,16 @@ def genImages():
             img1.rectangle(objectShape, fill = color) 
             #img.save( imagesPath + str(counter).zfill(6) + imageType)
             writer.append_data(np.array(img))
-            
+
     writer.close()
 
-def makeVideo():
+def makeVideo(input, output):
     fileList = []
-    for file in sorted(os.listdir(imagesPath)):
+    for file in sorted(os.listdir(input)):
         complete_path = imagesPath + file
         fileList.append(complete_path)
 
-    writer = imageio.get_writer(outputPath, fps=fps)
+    writer = imageio.get_writer(output, fps=fps)
 
     for im in fileList:
         writer.append_data(imageio.imread(im))
@@ -76,5 +74,5 @@ def deleteImages():
         os.remove(f)
 
 genImages()
-#makeVideo()
+#makeVideo(imagesPath, outputPath)
 #deleteImages()
