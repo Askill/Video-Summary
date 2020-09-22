@@ -14,7 +14,7 @@ fps = 30
 xmax = 1920
 ymax = 1080
 # in minutes
-length = .1
+length = 1
 numberOfEvents = 3
 dirname = os.path.dirname(__file__)
 
@@ -26,6 +26,8 @@ outputPath = os.path.join(dirname, 'out.mp4')
 def genImages():
     counter = 0
     writer = imageio.get_writer(outputPath, fps=fps)
+    writer.append_data(np.zeros(shape=[1080, 1920, 3], dtype=np.uint8))
+    writer.append_data(np.zeros(shape=[1080, 1920, 3], dtype=np.uint8))
     for i in range(numberOfEvents):
 
         objectWidth = (5 + random.randint(0, 5)) * xmax / 100 
