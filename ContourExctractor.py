@@ -8,15 +8,17 @@ import os
 import numpy as np
 import traceback
 import _thread
+import imageio
+import numpy as np
 
 class ContourExtractor:
 
-    #X = {frame_number: contours, }
+    #X = {frame_number: [(contour, (x,y,w,h)), ...], }
     extractedContours = dict()
 
     def __init__(self, videoPath):
-        print("ContourExtractror initiated")
-        print(videoPath)
+        print("ContourExtractor initiated")
+
 
         min_area = 100
         max_area = 30000
@@ -37,10 +39,10 @@ class ContourExtractor:
             # resize the frame, convert it to grayscale, and blur it
             if frame is None:
                 return
-            #frame = imutils.resize(frame, width=500)
+            frame = imutils.resize(frame, width=500)
             cv2.imshow( "frame", frame )  
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            gray = cv2.GaussianBlur(gray, (31, 31), 0)
+            gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
             # if the first frame is None, initialize it
             if firstFrame is None:
@@ -58,15 +60,17 @@ class ContourExtractor:
             cnts = imutils.grab_contours(cnts)
 
             # loop over the contours
+            contours = []
             for c in cnts:
                 if cv2.contourArea(c) < min_area or cv2.contourArea(c) > max_area:
                     continue
 
                 (x, y, w, h) = cv2.boundingRect(c)
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                contours.append((frame[y:y+h, x:x+w], (x, y, w, h)))
+                #cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 text = "Occupied"
 
-            self.extractedContours[frameCount] = cnts
+            self.extractedContours[frameCount] = contours
             frameCount += 1
 
             #cv2.imshow( "annotated", frame )  
@@ -77,14 +81,24 @@ class ContourExtractor:
         
         values = self.extractedContours.values()
         frame = np.zeros(shape=[1080, 1920, 3], dtype=np.uint8)
-        #frame = imutils.resize(frame, width=500)
+        frame = imutils.resize(frame, width=512)
+        frames = []
+        writer = imageio.get_writer(os.path.join(os.path.dirname(__file__), "./short.mp4"), fps=30)
+        for xx in values:
+            for v1 in xx:
+                (x, y, w, h) = v1[1]
+                v = v1[0]
+                
+                #cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-        for x in values:
-            for v in x:
-                (x, y, w, h) = cv2.boundingRect(v)
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                frame[y:y+v.shape[0], x:x+v.shape[1]] = v
+                frames.append(frame)
+                writer.append_data(np.array(frame))
+                #cv2.imshow("changes overlayed", frame)
+                #cv2.waitKey(10) & 0XFF
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
 
-        cv2.imshow("changes overlayed", frame)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        writer.close()
+        return frames
 
