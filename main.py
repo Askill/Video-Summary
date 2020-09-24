@@ -16,7 +16,7 @@ def demo():
     contourExtractor = ContourExtractor(footagePath)
     print("Time consumed in working: ",time.time() - start)
 
-    frames = contourExtractor.displayContours()
+    frames = contourExtractor.exportContours()
     Exporter().export(frames,os.path.join(os.path.dirname(__file__), "./short.mp4"))
 
 

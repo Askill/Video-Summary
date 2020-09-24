@@ -11,5 +11,4 @@ class Exporter:
         writer = imageio.get_writer(outputPath, fps=fps)
         for frame in frames:
             writer.append_data(np.array(frame))
-
         writer.close()

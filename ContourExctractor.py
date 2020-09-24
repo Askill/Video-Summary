@@ -79,6 +79,19 @@ class ContourExtractor:
     
     def displayContours(self):
         values = self.extractedContours.values()
+        for xx in values:
+            for v1 in xx:
+                (x, y, w, h) = v1[1]
+                v = v1[0]
+                frame = np.zeros(shape=[self.yDim, self.xDim, 3], dtype=np.uint8)
+                frame = imutils.resize(frame, width=512)
+                frame[y:y+v.shape[0], x:x+v.shape[1]] = v
+                cv2.imshow("changes overlayed", frame)
+                cv2.waitKey(10) & 0XFF
+        cv2.destroyAllWindows()
+
+    def exportContours(self):
+        values = self.extractedContours.values()
         frames = []
         for xx in values:
             for v1 in xx:
@@ -86,14 +99,7 @@ class ContourExtractor:
                 v = v1[0]
                 frame = np.zeros(shape=[self.yDim, self.xDim, 3], dtype=np.uint8)
                 frame = imutils.resize(frame, width=512)
-                #cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
                 frame[y:y+v.shape[0], x:x+v.shape[1]] = v
                 frames.append(frame)
-               
-                #cv2.imshow("changes overlayed", frame)
-                #cv2.waitKey(10) & 0XFF
-        #cv2.waitKey(0)
-        #cv2.destroyAllWindows()
         return frames
 
