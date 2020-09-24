@@ -21,9 +21,11 @@ class ContourExtractor:
     xDim = 0
     yDim = 0
 
+    def getextractedContours(self):
+        return self.extractedContours
+
     def __init__(self, videoPath):
         print("ContourExtractor initiated")
-
 
         min_area = self.min_area
         max_area = self.max_area
