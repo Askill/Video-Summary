@@ -15,7 +15,7 @@ class ContourExtractor:
 
     #X = {frame_number: [(contour, (x,y,w,h)), ...], }
     extractedContours = dict()
-    min_area = 990
+    min_area = 0
     max_area = 30000
     threashold = 25
     xDim = 0

@@ -25,7 +25,10 @@ class LayerFactory:
             layers.append(Layer(frameNumber, contour, None))
 
         for frameNumber, contours in data.items():
-            for layer in layers:
+            layerNum = len(layers)
+            i = 0
+            while i < layerNum:
+                layer = layers[i]
                 if frameNumber - layer.lastFrame < 5:
                     for contour, (x,y,w,h) in contours:
                         if len(layer.data[-1][1]) != 4:
@@ -37,6 +40,8 @@ class LayerFactory:
                             layer.add(frameNumber, (contour, (x,y,w,h)))
                         else:
                             layers.append(Layer(frameNumber, contour, None))
+                            layerNum = len(layers)
+                i+=1
 
         self.layers = layers
 
