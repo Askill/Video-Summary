@@ -22,26 +22,24 @@ class LayerFactory:
         contours = data[frameNumber]
 
         for contour in contours:
-            layers.append(Layer(frameNumber, contour, None))
+            layers.append(Layer(frameNumber, contour))
 
+        # inserts all the fucking contours as layers?
         for frameNumber, contours in data.items():
-            layerNum = len(layers)
-            i = 0
-            while i < layerNum:
-                layer = layers[i]
-                if frameNumber - layer.lastFrame < 5:
-                    for contour, (x,y,w,h) in contours:
+            for contour, (x,y,w,h) in contours:
+                for layer in layers:
+                    if frameNumber - layer.lastFrame <= 5:
                         if len(layer.data[-1][1]) != 4:
                             print("LayerFactory: Layer knew no bounds")
                             continue
+
                         (x2,y2,w2,h2) = layer.data[-1][1]
-                        
-                        if self.contoursOverlay((x,y+h), (x+w,y), (x2,y2+h2), (x2+w2,y2)):
+                        tol = 10
+                        if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
                             layer.add(frameNumber, (contour, (x,y,w,h)))
-                        else:
-                            layers.append(Layer(frameNumber, contour, None))
-                            layerNum = len(layers)
-                i+=1
+                            break
+
+                    layers.append(Layer(frameNumber, (contour, (x,y,w,h))))
 
         self.layers = layers
 

@@ -15,7 +15,7 @@ class ContourExtractor:
 
     #X = {frame_number: [(contour, (x,y,w,h)), ...], }
     extractedContours = dict()
-    min_area = 0
+    min_area = 200
     max_area = 30000
     threashold = 25
     xDim = 0
@@ -24,9 +24,10 @@ class ContourExtractor:
     def getextractedContours(self):
         return self.extractedContours
 
-    def __init__(self, videoPath):
+    def __init__(self):
         print("ContourExtractor initiated")
 
+    def extractContours(self, videoPath):
         min_area = self.min_area
         max_area = self.max_area
         threashold = self.threashold
@@ -40,15 +41,15 @@ class ContourExtractor:
         firstFrame = None
         # loop over the frames of the video
         frameCount = 0
+        extractedContours = dict()
         while res:
             res, frame = vs.read()
             # resize the frame, convert it to grayscale, and blur it
             if frame is None:
                 print("ContourExtractor: frame was None")
-                return
+                break
 
             frame = imutils.resize(frame, width=500)
-            cv2.imshow( "frame", frame)  
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
@@ -66,18 +67,22 @@ class ContourExtractor:
 
             contours = []
             for c in cnts:
-                if cv2.contourArea(c) < min_area or cv2.contourArea(c) > max_area:
+                ca = cv2.contourArea(c)
+                if ca < min_area or ca > max_area:
                     continue
-
                 (x, y, w, h) = cv2.boundingRect(c)
+                #print((x, y, w, h))
                 contours.append((frame[y:y+h, x:x+w], (x, y, w, h)))
+                
                 #cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            self.extractedContours[frameCount] = contours
+            if len(contours) != 0:
+                extractedContours[frameCount] = contours
             frameCount += 1
 
             #cv2.imshow( "annotated", frame )  
-
             #cv2.waitKey(10) & 0XFF
+        self.extractedContours = extractedContours
+            
     
     def displayContours(self):
         values = self.extractedContours.values()

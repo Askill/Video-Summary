@@ -5,12 +5,12 @@ class Layer:
     lastFrame = 0
     backgroundImage = []
 
-    def __init__(self, startFrame, data, backgroundImage):
+    def __init__(self, startFrame, data):
         self.startFrame = startFrame
+        self.lastFrame = startFrame
         self.data.append(data)
-        self.backgroundImage = backgroundImage
 
-        print("Layer constructed")
+        #print("Layer constructed")
 
     def add(self, frameNumber, data):
         self.lastFrame = frameNumber
