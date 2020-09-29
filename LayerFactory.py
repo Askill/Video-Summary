@@ -3,7 +3,7 @@ from Layer import Layer
 class LayerFactory:
     data = {}
     layers = []
-    tolerance = 10
+    tolerance = -10
     def __init__(self, data=None):
         print("LayerFactory constructed")
         self.data = data
@@ -40,11 +40,12 @@ class LayerFactory:
                         print("LayerFactory: Layer knew no bounds")
                         continue
 
-                    if frameNumber - layer.lastFrame <= 1:
+                    if frameNumber - layer.lastFrame <= 20:
                         (x2,y2,w2,h2) = layer.data[-1][1]
                         if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
                             foundLayer = True
                             layer.add(frameNumber, (contour, (x,y,w,h)))
+                            break
                             
                     layers[i] = layer
                 if not foundLayer:

@@ -17,7 +17,7 @@ class ContourExtractor:
     extractedContours = dict()
     min_area = 200
     max_area = 30000
-    threashold = 25
+    threashold = 35
     xDim = 0
     yDim = 0
 
