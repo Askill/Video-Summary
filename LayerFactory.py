@@ -34,13 +34,13 @@ class LayerFactory:
                 i = 0
                 for i in range(0, len(layers)):
                     layer = layers[i]
-                    
+
                     if len(layer.data[-1][1]) != 4:
                         # should never be called, hints at problem in ContourExtractor
                         print("LayerFactory: Layer knew no bounds")
                         continue
 
-                    if frameNumber - layer.lastFrame <= 5:
+                    if frameNumber - layer.lastFrame <= 1:
                         (x2,y2,w2,h2) = layer.data[-1][1]
                         if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
                             foundLayer = True
