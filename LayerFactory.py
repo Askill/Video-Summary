@@ -3,6 +3,7 @@ from Layer import Layer
 class LayerFactory:
     data = {}
     layers = []
+    tolerance = 10
     def __init__(self, data=None):
         print("LayerFactory constructed")
         self.data = data
@@ -10,6 +11,8 @@ class LayerFactory:
             self.extractLayers(data)
 
     def extractLayers(self, data = None):
+        tol = self.tolerance
+
         if self.data is None:
             if data is None:
                 print("LayerFactory data was none")
@@ -27,18 +30,24 @@ class LayerFactory:
         # inserts all the fucking contours as layers?
         for frameNumber, contours in data.items():
             for contour, (x,y,w,h) in contours:
-                for layer in layers:
+                foundLayer = False
+                i = 0
+                for i in range(0, len(layers)):
+                    layer = layers[i]
+                    
+                    if len(layer.data[-1][1]) != 4:
+                        # should never be called, hints at problem in ContourExtractor
+                        print("LayerFactory: Layer knew no bounds")
+                        continue
+
                     if frameNumber - layer.lastFrame <= 5:
-                        if len(layer.data[-1][1]) != 4:
-                            print("LayerFactory: Layer knew no bounds")
-                            continue
-
                         (x2,y2,w2,h2) = layer.data[-1][1]
-                        tol = 10
                         if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
+                            foundLayer = True
                             layer.add(frameNumber, (contour, (x,y,w,h)))
-                            break
-
+                            
+                    layers[i] = layer
+                if not foundLayer:
                     layers.append(Layer(frameNumber, (contour, (x,y,w,h))))
 
         self.layers = layers

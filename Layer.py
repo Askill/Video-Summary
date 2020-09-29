@@ -1,8 +1,8 @@
 class Layer:
     #data = [(contour, (x,y,w,h)),]
     data = []
-    startFrame = 0
-    lastFrame = 0
+    startFrame = None
+    lastFrame = None
     backgroundImage = []
 
     def __init__(self, startFrame, data):
@@ -10,7 +10,7 @@ class Layer:
         self.lastFrame = startFrame
         self.data.append(data)
 
-        #print("Layer constructed")
+        print("Layer constructed")
 
     def add(self, frameNumber, data):
         self.lastFrame = frameNumber
