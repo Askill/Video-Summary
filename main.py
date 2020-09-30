@@ -11,18 +11,11 @@ from LayerFactory import LayerFactory
 
 def demo():
     print("startup")
-    footagePath = os.path.join(os.path.dirname(__file__), "./generate test footage/out.mp4")
-
     start = time.time()
-    contourExtractor = ContourExtractor()
-    contourExtractor.extractContours(footagePath)
+
+    footagePath = os.path.join(os.path.dirname(__file__), "./generate test footage/3.MP4")
+    contours = ContourExtractor().extractContours(footagePath)
     print("Time consumed in working: ",time.time() - start)
-
-    #frames = contourExtractor.exportContours()
-    #Exporter().export(frames,os.path.join(os.path.dirname(__file__), "./short.mp4"))
-    
-    contours = contourExtractor.getextractedContours()
-
     layerFactory = LayerFactory(contours)
     Exporter().exportOverlayed(layerFactory.layers, os.path.join(os.path.dirname(__file__), "./short.mp4"))
 

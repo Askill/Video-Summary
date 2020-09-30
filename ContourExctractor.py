@@ -83,6 +83,7 @@ class ContourExtractor:
             #cv2.imshow( "annotated", frame )  
             #cv2.waitKey(10) & 0XFF
         self.extractedContours = extractedContours
+        return extractedContours
             
     
     def displayContours(self):
