@@ -15,9 +15,9 @@ class ContourExtractor:
 
     #X = {frame_number: [(contour, (x,y,w,h)), ...], }
     extractedContours = dict()
-    min_area = 200
-    max_area = 30000
-    threashold = 35
+    min_area = 100
+    max_area = 50000
+    threashold = 12
     xDim = 0
     yDim = 0
 
@@ -50,6 +50,7 @@ class ContourExtractor:
                 break
 
             frame = imutils.resize(frame, width=500)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (5, 5), 0)
 

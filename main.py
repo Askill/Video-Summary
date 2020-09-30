@@ -24,7 +24,7 @@ def demo():
     contours = contourExtractor.getextractedContours()
 
     layerFactory = LayerFactory(contours)
-    Exporter().exportLayers(layerFactory.layers, os.path.join(os.path.dirname(__file__), "./short.mp4"))
+    Exporter().exportOverlayed(layerFactory.layers, os.path.join(os.path.dirname(__file__), "./short.mp4"))
 
 def init():
     print("not needed yet")

@@ -38,3 +38,32 @@ class Exporter:
         
         writer.close() 
         #cv2.destroyAllWindows()
+    
+    def exportOverlayed(self, layers, outputPath):
+        fps = self.fps
+        writer = imageio.get_writer(outputPath, fps=fps)
+        
+        maxLength = self.getMaxLengthOfLayers(layers)
+
+        for i in range(maxLength):
+            frame1 = np.zeros(shape=[1080, 1920, 3], dtype=np.uint8)
+            frame1 = imutils.resize(frame1, width=512)
+
+            for layer in layers:
+                data = layer.data
+                if len(layer.data) > i:
+                    frame = layer.data[i]
+                    (x, y, w, h) = frame[1]
+                    frame = frame[0]
+
+                    frame1[y:y+h, x:x+w] = frame
+            writer.append_data(np.array(frame1))
+        writer.close() 
+
+    def getMaxLengthOfLayers(self, layers):
+        maxLength = 0
+        for layer in layers:
+            if layer.getLength() > maxLength:
+                maxLength = layer.getLength()
+        return maxLength
+

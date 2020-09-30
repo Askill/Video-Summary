@@ -3,7 +3,7 @@ from Layer import Layer
 class LayerFactory:
     data = {}
     layers = []
-    tolerance = -10
+    tolerance = 5
     def __init__(self, data=None):
         print("LayerFactory constructed")
         self.data = data
