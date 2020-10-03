@@ -39,24 +39,24 @@ class Exporter:
         writer.close() 
         #cv2.destroyAllWindows()
     
-    def exportOverlayed(self, layers, outputPath):
+    def exportOverlayed(self, underlay, layers, outputPath, resizeWidth):
         fps = self.fps
         writer = imageio.get_writer(outputPath, fps=fps)
         
         maxLength = self.getMaxLengthOfLayers(layers)
 
         for i in range(maxLength):
-            frame1 = np.zeros(shape=[1080, 1920, 3], dtype=np.uint8)
-            frame1 = imutils.resize(frame1, width=512)
-
+            frame1 = underlay
+            frame1 = imutils.resize(frame1, width=resizeWidth)
+            frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
             for layer in layers:
                 data = layer.data
                 if len(layer.data) > i:
+                    (x, y, w, h) = layer.bounds[i]
                     frame = layer.data[i]
-                    (x, y, w, h) = frame[1]
-                    frame = frame[0]
-
-                    frame1[y:y+h, x:x+w] = frame
+                    if frame is not None:
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        frame1[y:y+h, x:x+w] = frame
             writer.append_data(np.array(frame1))
         writer.close() 
 

@@ -10,6 +10,13 @@ class LayerFactory:
         if data is not None:
             self.extractLayers(data)
 
+    def freeData(self, maxLayerLength):
+        self.data.clear()
+        for i in range(len(self.layers)):
+            if self.layers[i].getLength() > maxLayerLength:
+                del self.layers[i] 
+
+
     def extractLayers(self, data = None):
         tol = self.tolerance
 
@@ -29,27 +36,27 @@ class LayerFactory:
 
         # inserts all the fucking contours as layers?
         for frameNumber, contours in data.items():
-            for contour, (x,y,w,h) in contours:
+            for (x,y,w,h) in contours:
                 foundLayer = False
                 i = 0
                 for i in range(0, len(layers)):
                     layer = layers[i]
 
-                    if len(layer.data[-1][1]) != 4:
+                    if len(layer.bounds[-1]) != 4:
                         # should never be called, hints at problem in ContourExtractor
                         print("LayerFactory: Layer knew no bounds")
                         continue
 
                     if frameNumber - layer.lastFrame <= 20:
-                        (x2,y2,w2,h2) = layer.data[-1][1]
+                        (x2,y2,w2,h2) = layer.bounds[-1]
                         if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
                             foundLayer = True
-                            layer.add(frameNumber, (contour, (x,y,w,h)))
+                            layer.add(frameNumber, (x,y,w,h))
                             break
                             
                     layers[i] = layer
                 if not foundLayer:
-                    layers.append(Layer(frameNumber, (contour, (x,y,w,h))))
+                    layers.append(Layer(frameNumber, (x,y,w,h)))
 
         self.layers = layers
 
@@ -65,6 +72,15 @@ class LayerFactory:
             return False
     
         return True
+
+    def fillLayers(self, footagePath):
+        for i in range(len(self.layers)):
+            self.layers[i].fill(footagePath)
+
+    def sortLayers(self):
+        # straight bubble
+        self.layers.sort(key = lambda c:c.lastFrame)
+
 
 
 

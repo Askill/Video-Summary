@@ -15,7 +15,7 @@ xmax = 1920
 ymax = 1080
 # in minutes
 length = 1
-numberOfEvents = 3
+numberOfEvents = 4
 dirname = os.path.dirname(__file__)
 
 imageType = ".png"

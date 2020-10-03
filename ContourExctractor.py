@@ -15,9 +15,9 @@ class ContourExtractor:
 
     #X = {frame_number: [(contour, (x,y,w,h)), ...], }
     extractedContours = dict()
-    min_area = 100
-    max_area = 50000
-    threashold = 12
+    min_area = 500
+    max_area = 5000
+    threashold = 20
     xDim = 0
     yDim = 0
 
@@ -27,7 +27,7 @@ class ContourExtractor:
     def __init__(self):
         print("ContourExtractor initiated")
 
-    def extractContours(self, videoPath):
+    def extractContours(self, videoPath, resizeWidth):
         min_area = self.min_area
         max_area = self.max_area
         threashold = self.threashold
@@ -49,8 +49,8 @@ class ContourExtractor:
                 print("ContourExtractor: frame was None")
                 break
 
-            frame = imutils.resize(frame, width=500)
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame = imutils.resize(frame, width=resizeWidth)
+            
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
@@ -73,7 +73,7 @@ class ContourExtractor:
                     continue
                 (x, y, w, h) = cv2.boundingRect(c)
                 #print((x, y, w, h))
-                contours.append((frame[y:y+h, x:x+w], (x, y, w, h)))
+                contours.append((x, y, w, h))
                 
                 #cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             if len(contours) != 0:
