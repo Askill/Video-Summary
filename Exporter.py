@@ -16,19 +16,21 @@ class Exporter:
             writer.append_data(np.array(frame))
         writer.close()
 
-    def exportLayers(self, layers, outputPath):
+    def exportLayers(self,underlay,  layers, outputPath, resizeWidth):
         fps = self.fps
         writer = imageio.get_writer(outputPath, fps=fps)
         i=0
         for layer in layers:
             data = layer.data
+            contours = layer.bounds
             if len(data) < 10:
                 continue
-            for frame in data:
-                (x, y, w, h) = frame[1]
-                frame = frame[0]
-                frame1 = np.zeros(shape=[1080, 1920, 3], dtype=np.uint8)
-                frame1 = imutils.resize(frame1, width=512)
+            for frame, contour in zip(data, contours):
+                (x, y, w, h) = contour
+                frame = frame
+                frame1 = underlay
+                frame1 = imutils.resize(frame1, width=resizeWidth)
+                frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2RGB)
                 frame1[y:y+frame.shape[0], x:x+frame.shape[1]] = frame
                 cv2.putText(frame1,  str(i), (30,30), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
                 writer.append_data(np.array(frame1))

@@ -47,7 +47,7 @@ class LayerFactory:
                         print("LayerFactory: Layer knew no bounds")
                         continue
 
-                    if frameNumber - layer.lastFrame <= 20:
+                    if frameNumber - layer.lastFrame <= 5:
                         (x2,y2,w2,h2) = layer.bounds[-1]
                         if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
                             foundLayer = True

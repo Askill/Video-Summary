@@ -16,8 +16,8 @@ class ContourExtractor:
     #X = {frame_number: [(contour, (x,y,w,h)), ...], }
     extractedContours = dict()
     min_area = 500
-    max_area = 5000
-    threashold = 20
+    max_area = 7000
+    threashold = 13
     xDim = 0
     yDim = 0
 
@@ -51,8 +51,10 @@ class ContourExtractor:
 
             frame = imutils.resize(frame, width=resizeWidth)
             
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            gray = cv2.GaussianBlur(gray, (5, 5), 0)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
+            gray = np.asarray(gray[:,:,1]/2 + gray[:,:,2]/2).astype(np.uint8)
+            
+            #gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
             # if the first frame is None, initialize it
             if firstFrame is None:
@@ -60,6 +62,7 @@ class ContourExtractor:
                 continue
 
             frameDelta = cv2.absdiff(gray, firstFrame)
+
             thresh = cv2.threshold(frameDelta, threashold, 255, cv2.THRESH_BINARY)[1]
             # dilate the thresholded image to fill in holes, then find contours
             thresh = cv2.dilate(thresh, None, iterations=3)
@@ -78,9 +81,12 @@ class ContourExtractor:
                 #cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             if len(contours) != 0:
                 extractedContours[frameCount] = contours
+
+            if frameCount % (60*30) == 0:
+                print("Minutes processed: ", frameCount/(60*30))
             frameCount += 1
 
-            #cv2.imshow( "annotated", frame )  
+            #cv2.imshow( "annotated", thresh )  
             #cv2.waitKey(10) & 0XFF
         self.extractedContours = extractedContours
         return extractedContours
