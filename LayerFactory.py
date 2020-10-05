@@ -35,7 +35,8 @@ class LayerFactory:
             layers.append(Layer(frameNumber, contour))
 
         # inserts all the fucking contours as layers?
-        for frameNumber, contours in data.items():
+        for frameNumber in sorted(data):
+            contours = data[frameNumber]
             for (x,y,w,h) in contours:
                 foundLayer = False
                 i = 0
