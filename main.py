@@ -13,16 +13,20 @@ def demo():
     maxLayerLength = 1*60*30
     start = time.time()
 
-    footagePath = os.path.join(os.path.dirname(__file__), "./generate test footage/out.mp4")
+    footagePath = os.path.join(os.path.dirname(__file__), "./generate test footage/3.mp4")
     contours = ContourExtractor().extractContours(footagePath, resizeWidth)
     print("Time consumed in working: ", time.time() - start)
     layerFactory = LayerFactory(contours)
+    print("freeing Data", time.time() - start)
     layerFactory.freeData(maxLayerLength)
+    print("sort Layers")
     layerFactory.sortLayers()
+    print("fill Layers")
     layerFactory.fillLayers(footagePath)
     underlay = cv2.VideoCapture(footagePath).read()[1]
-    Exporter().exportLayers(underlay, layerFactory.layers, os.path.join(os.path.dirname(__file__), "./short.mp4"), resizeWidth)
+    Exporter().exportOverlayed(underlay, layerFactory.layers, os.path.join(os.path.dirname(__file__), "./short.mp4"), resizeWidth)
     print("Total time: ", time.time() - start)
+
 def init():
     print("not needed yet")
 

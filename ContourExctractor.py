@@ -43,6 +43,8 @@ class ContourExtractor:
         frameCount = 0
         extractedContours = dict()
         while res:
+            if frameCount > 25*30*60:
+                break
             res, frame = vs.read()
             # resize the frame, convert it to grayscale, and blur it
             if frame is None:

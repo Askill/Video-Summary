@@ -15,8 +15,6 @@ class Layer:
         self.data = []
         self.bounds = []
         self.bounds.append(data)
-
-
         #print("Layer constructed")
 
     def add(self, frameNumber, data):
@@ -24,9 +22,10 @@ class Layer:
             self.lastFrame = frameNumber
          
             self.bounds.append(data)
-        
+        self.getLength()
+
     def getLength(self):
-        self.length = len(self.data)
+        self.length = len(self.bounds)
         return self.length
     
     def fill(self, inputPath):

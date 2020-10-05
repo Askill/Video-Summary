@@ -12,9 +12,9 @@ class LayerFactory:
 
     def freeData(self, maxLayerLength):
         self.data.clear()
-        for i in range(len(self.layers)):
-            if self.layers[i].getLength() > maxLayerLength:
-                del self.layers[i] 
+        #for i in range(len(self.layers) - 2):
+            #if self.layers[i].getLength() > maxLayerLength:
+                #del self.layers[i] 
 
 
     def extractLayers(self, data = None):
@@ -27,39 +27,32 @@ class LayerFactory:
             else:
                 self.data = data
 
-        layers = []
         frameNumber = min(data)
         contours = data[frameNumber]
-
         for contour in contours:
-            layers.append(Layer(frameNumber, contour))
-
+            self.layers.append(Layer(frameNumber, contour))
+  
+        oldLayerIDs = []
         # inserts all the fucking contours as layers?
         for frameNumber, contours in data.items():
+            if frameNumber%5000 == 0:
+                print(frameNumber/max(data.keys()))
+
             for (x,y,w,h) in contours:
                 foundLayer = False
-                i = 0
-                for i in range(0, len(layers)):
-                    layer = layers[i]
-
-                    if len(layer.bounds[-1]) != 4:
-                        # should never be called, hints at problem in ContourExtractor
-                        print("LayerFactory: Layer knew no bounds")
+                for i in set(range(0, len(self.layers))).difference(set(oldLayerIDs)):
+                    if frameNumber - self.layers[i].lastFrame > 10:
+                        oldLayerIDs.append(i)
                         continue
 
-                    if frameNumber - layer.lastFrame <= 5:
-                        (x2,y2,w2,h2) = layer.bounds[-1]
-                        if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
-                            foundLayer = True
-                            layer.add(frameNumber, (x,y,w,h))
-                            break
-                            
-                    layers[i] = layer
+                    (x2,y2,w2,h2) = self.layers[i].bounds[-1]
+                    if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
+                        self.layers[i].add(frameNumber, (x,y,w,h))
+                        foundLayer = True
+                        break
+
                 if not foundLayer:
-                    layers.append(Layer(frameNumber, (x,y,w,h)))
-
-        self.layers = layers
-
+                    self.layers.append(Layer(frameNumber, (x,y,w,h)))
 
     def contoursOverlay(self, l1, r1, l2, r2): 
       
