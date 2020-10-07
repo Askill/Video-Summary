@@ -9,6 +9,7 @@ import traceback
 import _thread
 import imageio
 import numpy as np
+import time
 
 class ContourExtractor:
 
@@ -32,7 +33,7 @@ class ContourExtractor:
         threashold = self.threashold
 
         # initialize the first frame in the video stream
-        vs = VideoCapture(filename)
+        vs = cv2.VideoCapture(videoPath)
 
         res, image = vs.read()
         self.xDim = image.shape[1]
@@ -41,6 +42,7 @@ class ContourExtractor:
         # loop over the frames of the video
         frameCount = 0
         extractedContours = dict()
+        start = time.time()
         while res:
             if frameCount > 25*30*60:
                 break
@@ -55,7 +57,7 @@ class ContourExtractor:
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             #gray = np.asarray(gray[:,:,1]/3 + gray[:,:,2]/3 + gray[:,:,0]/6).astype(np.uint8)
             
-            gray = cv2.GaussianBlur(gray, (5, 5), 0)
+            gray = cv2.GaussianBlur(gray, (10, 10), 0)
 
             # if the first frame is None, initialize it
             if firstFrame is None:
@@ -83,9 +85,10 @@ class ContourExtractor:
             if len(contours) != 0:
                 extractedContours[frameCount] = contours
 
-            if frameCount % (60*30) == 0:
-                print("Minutes processed: ", frameCount/(60*30))
             frameCount += 1
+            if frameCount % (60*30) == 0:
+                print(f"{frameCount/(60*30)} Minutes processed at {round((time.time() - start)/(frameCount/(30*60)), 2)}s per minute")
+            
 
             #cv2.imshow( "annotated", thresh )  
             #cv2.waitKey(10) & 0XFF

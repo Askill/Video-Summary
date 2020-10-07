@@ -17,7 +17,7 @@ def demo():
 
     footagePath = os.path.join(os.path.dirname(__file__), "./generate test footage/3.mp4")
     #analyzer = Analyzer(footagePath)
-    print("Time consumed reading video: ", time.time() - start)
+    #print("Time consumed reading video: ", time.time() - start)
     contours = ContourExtractor().extractContours(footagePath, resizeWidth)
     print("Time consumed in working: ", time.time() - start)
     layerFactory = LayerFactory(contours)

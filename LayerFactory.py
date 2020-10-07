@@ -53,7 +53,7 @@ class LayerFactory:
         # inserts all the fucking contours as layers?
         for frameNumber, contours in data.items():
             if frameNumber%5000 == 0:
-                print(frameNumber/max(data.keys()))
+                print(f"{round(frameNumber/max(data.keys()), 2)}% done with Layer extraction")
 
             for (x,y,w,h) in contours:
                 foundLayer = False
