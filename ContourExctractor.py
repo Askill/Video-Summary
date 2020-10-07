@@ -5,7 +5,6 @@ import imutils
 import time
 import cv2
 import os
-import numpy as np
 import traceback
 import _thread
 import imageio
@@ -16,7 +15,7 @@ class ContourExtractor:
     #X = {frame_number: [(contour, (x,y,w,h)), ...], }
     extractedContours = dict()
     min_area = 500
-    max_area = 7000
+    max_area = 28000
     threashold = 13
     xDim = 0
     yDim = 0
@@ -33,7 +32,7 @@ class ContourExtractor:
         threashold = self.threashold
 
         # initialize the first frame in the video stream
-        vs = cv2.VideoCapture(videoPath)
+        vs = VideoCapture(filename)
 
         res, image = vs.read()
         self.xDim = image.shape[1]
@@ -53,10 +52,10 @@ class ContourExtractor:
 
             frame = imutils.resize(frame, width=resizeWidth)
             
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
-            gray = np.asarray(gray[:,:,1]/2 + gray[:,:,2]/2).astype(np.uint8)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            #gray = np.asarray(gray[:,:,1]/3 + gray[:,:,2]/3 + gray[:,:,0]/6).astype(np.uint8)
             
-            #gray = cv2.GaussianBlur(gray, (5, 5), 0)
+            gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
             # if the first frame is None, initialize it
             if firstFrame is None:

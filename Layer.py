@@ -28,7 +28,7 @@ class Layer:
         self.length = len(self.bounds)
         return self.length
     
-    def fill(self, inputPath):
+    def fill(self, inputPath, resizeWidth):
         '''reads in the contour data, needed for export'''
         
         cap = cv2.VideoCapture(inputPath) 
@@ -39,7 +39,7 @@ class Layer:
             ret, frame = cap.read() 
             
             if ret:
-                frame = imutils.resize(frame, width=512)
+                frame = imutils.resize(frame, width=resizeWidth)
                 (x, y, w, h) = self.bounds[i]
                 self.data[i] = frame[y:y+h, x:x+w]
             i+=1

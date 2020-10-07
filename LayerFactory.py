@@ -10,11 +10,28 @@ class LayerFactory:
         if data is not None:
             self.extractLayers(data)
 
-    def freeData(self, maxLayerLength):
+    def removeStaticLayers(self):
+        '''Removes Layers with little to no movement'''
+        layers = []
+        for i, layer in enumerate(self.layers):
+            checks = 0
+            if abs(self.layers[i].bounds[0][0] - self.layers[i].bounds[-1][0]) < 5:
+                checks += 1
+            if abs(self.layers[i].bounds[0][1] - self.layers[i].bounds[-1][1]) < 5:
+                checks += 1
+            if checks <= 2:
+                layers.append(layer)
+        self.layers = layers
+
+
+    def freeData(self, maxLayerLength, minLayerLength):
         self.data.clear()
-        #for i in range(len(self.layers) - 2):
-            #if self.layers[i].getLength() > maxLayerLength:
-                #del self.layers[i] 
+        layers = []
+        for l in self.layers:
+            if l.getLength() < maxLayerLength and l.getLength() > minLayerLength:
+                layers.append(l) 
+        self.layers = layers
+        self.removeStaticLayers()
 
 
     def extractLayers(self, data = None):
@@ -55,20 +72,18 @@ class LayerFactory:
                     self.layers.append(Layer(frameNumber, (x,y,w,h)))
 
     def contoursOverlay(self, l1, r1, l2, r2): 
-      
         # If one rectangle is on left side of other 
         if(l1[0] >= r2[0] or l2[0] >= r1[0]): 
             return False
-    
         # If one rectangle is above other 
         if(l1[1] <= r2[1] or l2[1] <= r1[1]): 
             return False
     
         return True
 
-    def fillLayers(self, footagePath):
+    def fillLayers(self, footagePath, resizeWidth):
         for i in range(len(self.layers)):
-            self.layers[i].fill(footagePath)
+            self.layers[i].fill(footagePath, resizeWidth)
 
     def sortLayers(self):
         # straight bubble
