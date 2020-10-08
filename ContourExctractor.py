@@ -5,11 +5,11 @@ import imutils
 import time
 import cv2
 import os
-import numpy as np
 import traceback
 import _thread
 import imageio
 import numpy as np
+import time
 from threading import Thread
 from multiprocessing import Queue, Process, Pool
 from multiprocessing.pool import ThreadPool
@@ -20,7 +20,7 @@ class ContourExtractor:
     #X = {frame_number: [(contour, (x,y,w,h)), ...], }
     extractedContours = dict()
     min_area = 500
-    max_area = 7000
+    max_area = 28000
     threashold = 13
     xDim = 0
     yDim = 0

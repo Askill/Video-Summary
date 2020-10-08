@@ -10,11 +10,28 @@ class LayerFactory:
         if data is not None:
             self.extractLayers(data)
 
-    def freeData(self, maxLayerLength):
+    def removeStaticLayers(self):
+        '''Removes Layers with little to no movement'''
+        layers = []
+        for i, layer in enumerate(self.layers):
+            checks = 0
+            if abs(self.layers[i].bounds[0][0] - self.layers[i].bounds[-1][0]) < 5:
+                checks += 1
+            if abs(self.layers[i].bounds[0][1] - self.layers[i].bounds[-1][1]) < 5:
+                checks += 1
+            if checks <= 2:
+                layers.append(layer)
+        self.layers = layers
+
+
+    def freeData(self, maxLayerLength, minLayerLength):
         self.data.clear()
-        for i in range(len(self.layers)):
-            if self.layers[i].getLength() > maxLayerLength:
-                del self.layers[i] 
+        layers = []
+        for l in self.layers:
+            if l.getLength() < maxLayerLength and l.getLength() > minLayerLength:
+                layers.append(l) 
+        self.layers = layers
+        self.removeStaticLayers()
 
 
     def extractLayers(self, data = None):
@@ -27,56 +44,48 @@ class LayerFactory:
             else:
                 self.data = data
 
-        layers = []
         frameNumber = min(data)
         contours = data[frameNumber]
-
         for contour in contours:
-            layers.append(Layer(frameNumber, contour))
-
+            self.layers.append(Layer(frameNumber, contour))
+  
+        oldLayerIDs = []
         # inserts all the fucking contours as layers?
+        for frameNumber, contours in data.items():
+            if frameNumber%5000 == 0:
+                print(f"{round(frameNumber/max(data.keys()), 2)}% done with Layer extraction")
+
         for frameNumber in sorted(data):
             contours = data[frameNumber]
             for (x,y,w,h) in contours:
                 foundLayer = False
-                i = 0
-                for i in range(0, len(layers)):
-                    layer = layers[i]
-
-                    if len(layer.bounds[-1]) != 4:
-                        # should never be called, hints at problem in ContourExtractor
-                        print("LayerFactory: Layer knew no bounds")
+                for i in set(range(0, len(self.layers))).difference(set(oldLayerIDs)):
+                    if frameNumber - self.layers[i].lastFrame > 10:
+                        oldLayerIDs.append(i)
                         continue
 
-                    if frameNumber - layer.lastFrame <= 5:
-                        (x2,y2,w2,h2) = layer.bounds[-1]
-                        if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
-                            foundLayer = True
-                            layer.add(frameNumber, (x,y,w,h))
-                            break
-                            
-                    layers[i] = layer
+                    (x2,y2,w2,h2) = self.layers[i].bounds[-1]
+                    if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
+                        self.layers[i].add(frameNumber, (x,y,w,h))
+                        foundLayer = True
+                        break
+
                 if not foundLayer:
-                    layers.append(Layer(frameNumber, (x,y,w,h)))
-
-        self.layers = layers
-
+                    self.layers.append(Layer(frameNumber, (x,y,w,h)))
 
     def contoursOverlay(self, l1, r1, l2, r2): 
-      
         # If one rectangle is on left side of other 
         if(l1[0] >= r2[0] or l2[0] >= r1[0]): 
             return False
-    
         # If one rectangle is above other 
         if(l1[1] <= r2[1] or l2[1] <= r1[1]): 
             return False
     
         return True
 
-    def fillLayers(self, footagePath):
+    def fillLayers(self, footagePath, resizeWidth):
         for i in range(len(self.layers)):
-            self.layers[i].fill(footagePath)
+            self.layers[i].fill(footagePath, resizeWidth)
 
     def sortLayers(self):
         # straight bubble
