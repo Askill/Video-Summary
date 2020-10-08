@@ -14,6 +14,7 @@ from threading import Thread
 from multiprocessing import Queue, Process, Pool
 from multiprocessing.pool import ThreadPool
 import concurrent.futures
+from VideoReader import VideoReader
 
 class ContourExtractor:
 
@@ -32,61 +33,43 @@ class ContourExtractor:
         print("ContourExtractor initiated")
 
     def extractContours(self, videoPath, resizeWidth):
-
-
-        # initialize the first frame in the video stream
-        vs = cv2.VideoCapture(videoPath)
-
-        res, image = vs.read()
-        self.xDim = image.shape[1]
-        self.yDim = image.shape[0]
         firstFrame = None
-        # loop over the frames of the video
-        frameCount = -1
-        extractedContours = dict()
-        
-        results = []
-        extractedContours = dict()
+        extractedContours = dict()        
+        videoReader = VideoReader(videoPath)
+        self.xDim = videoReader.w
+        self.yDim = videoReader.h
+        videoReader.fillBuffer()
 
-        imageBuffer = []
-        
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            while res:
-                frameCount += 1
-                if frameCount % (60*30) == 0:
-                    print("Minutes processed: ", frameCount/(60*30))
-                
+        while not videoReader.videoEnded():
+            frameCount, frame = videoReader.pop()
+            if frameCount % (60*30) == 0:
+                print("Minutes processed: ", frameCount/(60*30))
+            
+            if frame is None:
+                print("ContourExtractor: frame was None")
+                continue
 
-                res, frame = vs.read()
-                # resize the frame, convert it to grayscale, and blur it
-                if frame is None:
-                    print("ContourExtractor: frame was None")
-                    break
+            # resize the frame, convert it to grayscale, and blur it
+            frame = imutils.resize(frame, width=resizeWidth)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-                frame = imutils.resize(frame, width=resizeWidth)
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
+            # if the first frame is None, initialize it
+            if firstFrame is None:
+                #gray = np.asarray(gray[:,:,1]/2 + gray[:,:,2]/2).astype(np.uint8)       
+                gray = cv2.GaussianBlur(gray, (5, 5), 0)
+                firstFrame = gray
+                continue
+            x = self.getContours(gray, firstFrame)
+            if x is not None:
+                extractedContours[frameCount] = x
 
-                # if the first frame is None, initialize it
-                if firstFrame is None:
-                    gray = np.asarray(gray[:,:,1]/2 + gray[:,:,2]/2).astype(np.uint8)       
-                    gray = cv2.GaussianBlur(gray, (5, 5), 0)
-                    firstFrame = gray
-                    continue
-
-                results.append(executor.submit(self.getContours, frameCount, gray, firstFrame))
-
-                #contours = self.getContours(frameCount, gray, firstFrame)
-
-            for f in concurrent.futures.as_completed(results):
-                x=f.result()
-                if x is not None:
-                    extractedContours = {**extractedContours, **x} 
-        
+        print("done")
+        videoReader.thread.join()
         self.extractedContours = extractedContours
         return extractedContours
             
-    def getContours(self, frameCount, gray, firstFrame):
-        gray = np.asarray(gray[:,:,1]/2 + gray[:,:,2]/2).astype(np.uint8)       
+    def getContours(self, gray, firstFrame):
+              
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
         frameDelta = cv2.absdiff(gray, firstFrame)
         thresh = cv2.threshold(frameDelta, self.threashold, 255, cv2.THRESH_BINARY)[1]
@@ -104,10 +87,9 @@ class ContourExtractor:
             #print((x, y, w, h))
             contours.append((x, y, w, h))
 
-        if len(contours) != 0: 
-            return {frameCount: contours}
-        else:
-            return None
+        if len(contours) != 0 and contours is not None: 
+            return contours
+
 
     def displayContours(self):
         values = self.extractedContours.values()

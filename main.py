@@ -4,20 +4,22 @@ from ContourExctractor import ContourExtractor
 from Exporter import Exporter
 from LayerFactory import LayerFactory
 from Analyzer import Analyzer
+from VideoReader import VideoReader
 import cv2
 #TODO
 #   finden von relevanten Stellen anhand von zu findenen metriken für vergleichsbilder
 
 def demo():
     print("startup")
-    resizeWidth = 1024
+    resizeWidth = 512
     maxLayerLength = 1*60*30
-    minLayerLength = 3
+    minLayerLength = 30
     start = time.time()
 
     footagePath = os.path.join(os.path.dirname(__file__), "./generate test footage/3.mp4")
     #analyzer = Analyzer(footagePath)
     #print("Time consumed reading video: ", time.time() - start)
+
     contours = ContourExtractor().extractContours(footagePath, resizeWidth)
     print("Time consumed in working: ", time.time() - start)
     layerFactory = LayerFactory(contours)

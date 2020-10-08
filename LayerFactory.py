@@ -53,10 +53,8 @@ class LayerFactory:
         # inserts all the fucking contours as layers?
         for frameNumber, contours in data.items():
             if frameNumber%5000 == 0:
-                print(f"{round(frameNumber/max(data.keys()), 2)}% done with Layer extraction")
+                print(f"{int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction")
 
-        for frameNumber in sorted(data):
-            contours = data[frameNumber]
             for (x,y,w,h) in contours:
                 foundLayer = False
                 for i in set(range(0, len(self.layers))).difference(set(oldLayerIDs)):
@@ -85,15 +83,10 @@ class LayerFactory:
 
     def fillLayers(self, footagePath, resizeWidth):
         for i in range(len(self.layers)):
+            if i % 20 == 0:
+                print(f"filled {int(round(i/len(self.layers),2)*100)}% of all Layers")
             self.layers[i].fill(footagePath, resizeWidth)
 
     def sortLayers(self):
         # straight bubble
         self.layers.sort(key = lambda c:c.lastFrame)
-
-
-
-
-                
-            
-        
