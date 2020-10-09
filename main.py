@@ -11,8 +11,8 @@ import cv2
 
 def demo():
     print("startup")
-    resizeWidth = 512
-    maxLayerLength = 1*60*30
+    resizeWidth = 256
+    maxLayerLength = 20*30
     minLayerLength = 30
     start = time.time()
 
@@ -27,10 +27,10 @@ def demo():
     layerFactory.freeData(maxLayerLength, minLayerLength)
     print("sort Layers")
     layerFactory.sortLayers()
-    print("fill Layers")
-    layerFactory.fillLayers(footagePath, resizeWidth)
-    underlay = cv2.VideoCapture(footagePath).read()[1]
-    Exporter().exportOverlayed(underlay, layerFactory.layers, os.path.join(os.path.dirname(__file__), "./short.mp4"), resizeWidth)
+    #print("fill Layers")
+    #layerFactory.fillLayers(footagePath, resizeWidth)
+
+    Exporter().exportOverlayed(layerFactory.layers,footagePath, os.path.join(os.path.dirname(__file__), "./short.mp4"), resizeWidth)
     print("Total time: ", time.time() - start)
 
 def init():
