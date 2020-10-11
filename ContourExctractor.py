@@ -9,67 +9,75 @@ import traceback
 import _thread
 import imageio
 import numpy as np
-import time
 from threading import Thread
 from multiprocessing import Queue, Process, Pool
 from multiprocessing.pool import ThreadPool
 import concurrent.futures
 from VideoReader import VideoReader
+from queue import Queue
+import threading
+from multiprocessing.pool import ThreadPool
 
 class ContourExtractor:
 
     #X = {frame_number: [(contour, (x,y,w,h)), ...], }
-    extractedContours = dict()
-    min_area = 100
-    max_area = 1000
-    threashold = 13
-    xDim = 0
-    yDim = 0
+
 
     def getextractedContours(self):
         return self.extractedContours
 
     def __init__(self):
+        self.frameBuffer = Queue(16)
+        self.extractedContours = dict()
+        self.min_area = 30
+        self.max_area = 1000
+        self.threashold = 13
+        self.xDim = 0
+        self.yDim = 0       
+
         print("ContourExtractor initiated")
 
     def extractContours(self, videoPath, resizeWidth):
-        firstFrame = None
         extractedContours = dict()        
         videoReader = VideoReader(videoPath)
         self.xDim = videoReader.w
         self.yDim = videoReader.h
+        self.resizeWidth = resizeWidth
         videoReader.fillBuffer()
+        frameCount, frame = videoReader.pop()
+        
+        #init compare image
+        frame = imutils.resize(frame, width=resizeWidth)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  
+        #gray = np.asarray(gray[:,:,1]/2 + gray[:,:,2]/2).astype(np.uint8) 
+        gray = cv2.GaussianBlur(gray, (5, 5), 0)
+        self.firstFrame = gray
 
-        while not videoReader.videoEnded():
-            frameCount, frame = videoReader.pop()
-            if frameCount % (60*30) == 0:
-                print("Minutes processed: ", frameCount/(60*30))
-            
-            if frame is None:
-                print("ContourExtractor: frame was None")
-                continue
+        threads = 16
+        start = time.time()
+        with ThreadPool(threads) as pool:
+            while not videoReader.videoEnded():
+                #FrameCount, frame = videoReader.pop()
+                if frameCount % (60*30) == 0:
+                    print(f"Minutes processed: {frameCount/(60*30)} in {round((time.time() - start), 2)} each")
+                    start = time.time()
 
-            # resize the frame, convert it to grayscale, and blur it
-            frame = imutils.resize(frame, width=resizeWidth)
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                if videoReader.buffer.qsize() == 0:
+                    time.sleep(1)
 
-            # if the first frame is None, initialize it
-            if firstFrame is None:
-                #gray = np.asarray(gray[:,:,1]/2 + gray[:,:,2]/2).astype(np.uint8)       
-                gray = cv2.GaussianBlur(gray, (5, 5), 0)
-                firstFrame = gray
-                continue
-            x = self.getContours(gray, firstFrame)
-            if x is not None:
-                extractedContours[frameCount] = x
+                tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
+                frameCount = tmpData[-1][0]
+                pool.map(self.getContours, tmpData)
 
-        print("done")
         videoReader.thread.join()
-        self.extractedContours = extractedContours
-        return extractedContours
+        
+        return self.extractedContours
             
-    def getContours(self, gray, firstFrame):
-              
+    def getContours(self, data):
+        frameCount, frame = data
+        firstFrame = self.firstFrame
+        frame = imutils.resize(frame, width=self.resizeWidth)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
         frameDelta = cv2.absdiff(gray, firstFrame)
         thresh = cv2.threshold(frameDelta, self.threashold, 255, cv2.THRESH_BINARY)[1]
@@ -84,11 +92,17 @@ class ContourExtractor:
             if ca < self.min_area or ca > self.max_area:
                 continue
             (x, y, w, h) = cv2.boundingRect(c)
-            #print((x, y, w, h))
-            contours.append((x, y, w, h))
 
+            contours.append((x, y, w, h))
+        
         if len(contours) != 0 and contours is not None: 
-            return contours
+            # this should be thread safe
+            self.extractedContours[frameCount] = contours
+
+
+        
+
+        
 
 
     def displayContours(self):

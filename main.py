@@ -21,14 +21,11 @@ def demo():
     #print("Time consumed reading video: ", time.time() - start)
 
     contours = ContourExtractor().extractContours(footagePath, resizeWidth)
-    print("Time consumed in working: ", time.time() - start)
+    print("Time consumed extracting: ", time.time() - start)
     layerFactory = LayerFactory(contours)
-    print("freeing Data", time.time() - start)
     layerFactory.freeData(maxLayerLength, minLayerLength)
     print("sort Layers")
     layerFactory.sortLayers()
-    #print("fill Layers")
-    #layerFactory.fillLayers(footagePath, resizeWidth)
 
     Exporter().exportOverlayed(layerFactory.layers,footagePath, os.path.join(os.path.dirname(__file__), "./short.mp4"), resizeWidth)
     print("Total time: ", time.time() - start)

@@ -51,13 +51,11 @@ class VideoReader:
 
     def readFrames(self):
         while self.lastFrame < self.endFrame:
-            if not self.buffer.full():
-                    res, frame = self.vc.read()
-                    if res:
-                        self.buffer.put((self.lastFrame, frame))
-                    self.lastFrame += 1
-            else:
-                sleep(0.5)
+            res, frame = self.vc.read()
+            if res:
+                self.buffer.put((self.lastFrame, frame))
+            self.lastFrame += 1
+
         self.stopped = True
 
     
