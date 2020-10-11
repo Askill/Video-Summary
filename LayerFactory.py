@@ -23,9 +23,9 @@ class LayerFactory:
         layers = []
         for i, layer in enumerate(self.layers):
             checks = 0
-            if abs(self.layers[i].bounds[0][0] - self.layers[i].bounds[-1][0]) < 5:
+            if abs(self.layers[i].bounds[0][0][0] - self.layers[i].bounds[-1][0][0]) < 5:
                 checks += 1
-            if abs(self.layers[i].bounds[0][1] - self.layers[i].bounds[-1][1]) < 5:
+            if abs(self.layers[i].bounds[0][0][1] - self.layers[i].bounds[-1][0][1]) < 5:
                 checks += 1
             if checks <= 2:
                 layers.append(layer)
@@ -71,11 +71,15 @@ class LayerFactory:
                         oldLayerIDs.append(i)
                         continue
 
-                    (x2,y2,w2,h2) = self.layers[i].bounds[-1]
-                    if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
-                        self.layers[i].add(frameNumber, (x,y,w,h))
-                        foundLayer = True
-                        break
+                    for bounds in self.layers[i].bounds[-1]:
+                        if bounds is None:
+                            break
+                        (x2,y2,w2,h2) = bounds
+                        if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
+                            self.layers[i].add(frameNumber, (x,y,w,h))
+                            foundLayer = True
+                            #break
+
                 if not foundLayer:
                     self.layers.append(Layer(frameNumber, (x,y,w,h)))
 

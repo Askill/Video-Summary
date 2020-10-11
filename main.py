@@ -15,7 +15,7 @@ def demo():
     start = time.time()
     config = Config()
 
-    config["inputPath"] = os.path.join(os.path.dirname(__file__), "./generate test footage/3.mp4")
+    config["inputPath"] = os.path.join(os.path.dirname(__file__), "./generate test footage/out.mp4")
     config["outputPath"]  = os.path.join(os.path.dirname(__file__), "./output/short.mp4")
 
     contours = ContourExtractor(config).extractContours()

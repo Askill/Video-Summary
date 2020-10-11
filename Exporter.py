@@ -45,17 +45,17 @@ class Exporter:
                 continue
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
-            
+            frame2 = underlay
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
-                    (x, y, w, h) = layer.bounds[frameCount - layer.startFrame]
-                    factor = videoReader.w / self.resizeWidth
-                    x = int(x * factor)
-                    y = int(y * factor)
-                    w = int(w * factor)
-                    h = int(h * factor)
-                    frame2 = underlay
-                    frame2[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
+                    for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                        factor = videoReader.w / self.resizeWidth
+                        x = int(x * factor)
+                        y = int(y * factor)
+                        w = int(w * factor)
+                        h = int(h * factor)
+                        
+                        frame2[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
             writer.append_data(frame2)
 
 
@@ -84,16 +84,17 @@ class Exporter:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
-                    (x, y, w, h) = layer.bounds[frameCount - layer.startFrame]
-                    factor = videoReader.w / self.resizeWidth
-                    x = int(x * factor)
-                    y = int(y * factor)
-                    w = int(w * factor)
-                    h = int(h * factor)
-                    # if exportFrame as index instead of frameCount - layer.startFrame  then we have layer after layer
-                    frame2 = frames[frameCount - layer.startFrame]
-                    frame2[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
-                    frames[frameCount - layer.startFrame] = np.copy(frame2)
+                    for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                        (x, y, w, h) = layer.bounds[frameCount - layer.startFrame]
+                        factor = videoReader.w / self.resizeWidth
+                        x = int(x * factor)
+                        y = int(y * factor)
+                        w = int(w * factor)
+                        h = int(h * factor)
+                        # if exportFrame as index instead of frameCount - layer.startFrame  then we have layer after layer
+                        frame2 = frames[frameCount - layer.startFrame]
+                        frame2[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
+                        frames[frameCount - layer.startFrame] = np.copy(frame2)
 
 
         videoReader.thread.join()

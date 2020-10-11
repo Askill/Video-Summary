@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import imutils
 class Layer:
-    #data = [(contour, (x,y,w,h)),]
+    #bounds = [(contour, (x,y,w,h)),]
 
     startFrame = None
     lastFrame = None
@@ -14,14 +14,17 @@ class Layer:
         
         self.data = []
         self.bounds = []
-        self.bounds.append(data)
+        self.bounds.append([data])
         #print("Layer constructed")
 
     def add(self, frameNumber, data):
-        if not (self.startFrame + len(self.bounds) - frameNumber < 0):
+        if not self.startFrame + len(self.bounds) < frameNumber:
+            if len(self.bounds[self.startFrame - frameNumber]) >= 1:
+                self.bounds[self.startFrame - frameNumber].append(data)
+        else:
             self.lastFrame = frameNumber
-         
-            self.bounds.append(data)
+            self.bounds.append([data])
+
         self.getLength()
 
     def getLength(self):
