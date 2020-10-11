@@ -17,6 +17,7 @@ from VideoReader import VideoReader
 from queue import Queue
 import threading
 from multiprocessing.pool import ThreadPool
+from Config import Config
 
 class ContourExtractor:
 
@@ -26,28 +27,31 @@ class ContourExtractor:
     def getextractedContours(self):
         return self.extractedContours
 
-    def __init__(self):
+    def __init__(self, config):
         self.frameBuffer = Queue(16)
         self.extractedContours = dict()
-        self.min_area = 30
-        self.max_area = 1000
-        self.threashold = 13
+        self.min_area = config["min_area"]
+        self.max_area = config["max_area"]
+        self.threashold = config["threashold"]
+        self.resizeWidth = config["resizeWidth"]
+        self.videoPath = config["inputPath"]
         self.xDim = 0
         self.yDim = 0       
+        self.config = config
 
         print("ContourExtractor initiated")
 
-    def extractContours(self, videoPath, resizeWidth):
+    def extractContours(self):
         extractedContours = dict()        
-        videoReader = VideoReader(videoPath)
+        videoReader = VideoReader(self.config)
         self.xDim = videoReader.w
         self.yDim = videoReader.h
-        self.resizeWidth = resizeWidth
+         
         videoReader.fillBuffer()
         frameCount, frame = videoReader.pop()
         
         #init compare image
-        frame = imutils.resize(frame, width=resizeWidth)
+        frame = imutils.resize(frame, width=self.resizeWidth)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  
         #gray = np.asarray(gray[:,:,1]/2 + gray[:,:,2]/2).astype(np.uint8) 
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -63,14 +67,13 @@ class ContourExtractor:
                     start = time.time()
 
                 if videoReader.buffer.qsize() == 0:
-                    time.sleep(1)
+                    time.sleep(.5)
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
                 frameCount = tmpData[-1][0]
                 pool.map(self.getContours, tmpData)
 
         videoReader.thread.join()
-        
         return self.extractedContours
             
     def getContours(self, data):
@@ -82,7 +85,7 @@ class ContourExtractor:
         frameDelta = cv2.absdiff(gray, firstFrame)
         thresh = cv2.threshold(frameDelta, self.threashold, 255, cv2.THRESH_BINARY)[1]
         # dilate the thresholded image to fill in holes, then find contours
-        thresh = cv2.dilate(thresh, None, iterations=3)
+        thresh = cv2.dilate(thresh, None, iterations=4)
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
 
@@ -98,12 +101,6 @@ class ContourExtractor:
         if len(contours) != 0 and contours is not None: 
             # this should be thread safe
             self.extractedContours[frameCount] = contours
-
-
-        
-
-        
-
 
     def displayContours(self):
         values = self.extractedContours.values()

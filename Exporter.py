@@ -9,29 +9,33 @@ from VideoReader import VideoReader
 class Exporter:
     fps = 30
 
-    def __init__(self):
+    def __init__(self, config):
+        self.footagePath = config["inputPath"]
+        self.outputPath = config["outputPath"]
+        self.resizeWidth = config["resizeWidth"]
+        self.config = config
         print("Exporter initiated")
 
-    def export(self, frames, outputPath):
+    def export(self):
         fps = self.fps
         writer = imageio.get_writer(outputPath, fps=fps)
         for frame in frames:
             writer.append_data(np.array(frame))
         writer.close()
 
-    def exportLayers(self,  layers, footagePath, outputPath, resizeWidth):
+    def exportLayers(self,  layers):
 
         listOfFrames = self.makeListOfFrames(layers)
-        videoReader = VideoReader(footagePath, listOfFrames)
+        videoReader = VideoReader(self.config, listOfFrames)
         videoReader.fillBuffer()
         maxLength = self.getMaxLengthOfLayers(layers)
-        underlay = cv2.VideoCapture(footagePath).read()[1]
+        underlay = cv2.VideoCapture(self.footagePath).read()[1]
         underlay = cv2.cvtColor(underlay, cv2.COLOR_BGR2RGB)
         frames = [underlay]*maxLength
         exportFrame = 0
 
-        fps = self.fps
-        writer = imageio.get_writer(outputPath, fps=fps)
+        self.fps = videoReader.getFPS()
+        writer = imageio.get_writer(self.outputPath, fps=self.fps)
         while not videoReader.videoEnded():
             frameCount, frame = videoReader.pop()
             if frameCount % (60*self.fps) == 0:
@@ -45,12 +49,11 @@ class Exporter:
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
                     (x, y, w, h) = layer.bounds[frameCount - layer.startFrame]
-                    factor = videoReader.w / resizeWidth
+                    factor = videoReader.w / self.resizeWidth
                     x = int(x * factor)
                     y = int(y * factor)
                     w = int(w * factor)
                     h = int(h * factor)
-                    # if exportFrame as index instead of frameCount - layer.startFrame  then we have layer after layer
                     frame2 = underlay
                     frame2[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
             writer.append_data(frame2)
@@ -59,12 +62,13 @@ class Exporter:
         videoReader.thread.join()
 
 
-    def exportOverlayed(self, layers, footagePath, outputPath, resizeWidth):
+    def exportOverlayed(self, layers):
+
         listOfFrames = self.makeListOfFrames(layers)
-        videoReader = VideoReader(footagePath, listOfFrames)
+        videoReader = VideoReader(self.config, listOfFrames)
         videoReader.fillBuffer()
         maxLength = self.getMaxLengthOfLayers(layers)
-        underlay = cv2.VideoCapture(footagePath).read()[1]
+        underlay = cv2.VideoCapture(self.footagePath).read()[1]
         underlay = cv2.cvtColor(underlay, cv2.COLOR_BGR2RGB)
         frames = [underlay]*maxLength
         exportFrame = 0
@@ -81,7 +85,7 @@ class Exporter:
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
                     (x, y, w, h) = layer.bounds[frameCount - layer.startFrame]
-                    factor = videoReader.w / resizeWidth
+                    factor = videoReader.w / self.resizeWidth
                     x = int(x * factor)
                     y = int(y * factor)
                     w = int(w * factor)
@@ -94,9 +98,9 @@ class Exporter:
 
         videoReader.thread.join()
 
-
+        self.fps = videoReader.getFPS()
         fps = self.fps
-        writer = imageio.get_writer(outputPath, fps=fps)
+        writer = imageio.get_writer(self.outputPath, fps=fps)
         for frame in frames:
             writer.append_data(frame)
 

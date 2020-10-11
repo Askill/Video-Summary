@@ -2,25 +2,23 @@
 class Config:
     c = {
         "min_area" : 500,
-        "max_area" : 28000,
-        "threashold" : 13,
-        "xDim" : 0,
-        "yDim" : 0,
+        "max_area" : 9000,
+        "threashold" : 10,
         "resizeWidth" : 512,
-        "inputPath" : "",
-        "outputPath": "",
-        "maxLayerLength": 1000, 
-        "minLayerLength": 0,
-        "fps": 30,        
-        "tolerance": 5,
+        "inputPath" : None,
+        "outputPath": None,
+        "maxLayerLength": 900, 
+        "minLayerLength": 30,    
+        "tolerance": 10,
         "maxLength": None,
-        ""
-    }
-    __init__(self):
-        print(Current Config:)
+        "ttolerance": 10,
+        "videoBufferLength": 16}
+
+    def __init__(self):
+        print("Current Config:", self.c)
     
     def __getitem__(self, key):
         return  self.c[key]
 
     def __setitem__(self, key, value):
-        return  self.c[key] = value
+        self.c[key] = value

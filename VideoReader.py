@@ -4,6 +4,7 @@ import cv2
 from time import sleep
 from queue import Queue
 import threading
+from Config import Config
 
 
 class VideoReader:
@@ -11,14 +12,15 @@ class VideoReader:
     #buffer = [(frameNumber, frame)]
     listOfFrames = None
 
-    def __init__(self, videoPath, setOfFrames = None):
+    def __init__(self, config, setOfFrames = None):
+        videoPath = config["inputPath"]
         if videoPath is None:
             print("Video reader needs a videoPath!")
             return None
 
         self.videoPath = videoPath
         self.lastFrame = 0
-        self.buffer = Queue(16)
+        self.buffer = Queue(config["videoBufferLength"])
         self.vc = cv2.VideoCapture(videoPath)
         self.stopped = False
         res, image = self.vc.read()
@@ -83,10 +85,11 @@ class VideoReader:
         self.stopped = True
     
     def videoEnded(self):
-        if self.stopped:
-            return True
-        else:
-            return False
+        return self.stopped
+
+
+    def getFPS(self):
+        return self.vc.get(cv2.CAP_PROP_FPS)
         
 
 

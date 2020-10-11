@@ -1,14 +1,22 @@
 from Layer import Layer
+from Config import Config
 
 class LayerFactory:
-    data = {}
-    layers = []
-    tolerance = 5
-    def __init__(self, data=None):
+    def __init__(self, config, data=None):
+        self.data = {}
+        self.layers = []
+        self.tolerance = config["tolerance"]
+        self.ttolerance = config["ttolerance"]
+        self.minLayerLength = config["minLayerLength"]
+        self.maxLayerLength = config["maxLayerLength"]
+        self.resizeWidth = config["resizeWidth"]
+        self.footagePath = config["inputPath"]
         print("LayerFactory constructed")
         self.data = data
         if data is not None:
             self.extractLayers(data)
+
+
 
     def removeStaticLayers(self):
         '''Removes Layers with little to no movement'''
@@ -24,11 +32,11 @@ class LayerFactory:
         self.layers = layers
 
 
-    def freeData(self, maxLayerLength, minLayerLength):
+    def freeData(self):
         self.data.clear()
         layers = []
         for l in self.layers:
-            if l.getLength() < maxLayerLength and l.getLength() > minLayerLength:
+            if l.getLength() < self.maxLayerLength and l.getLength() > self.minLayerLength:
                 layers.append(l) 
         self.layers = layers
         self.removeStaticLayers()
@@ -51,14 +59,15 @@ class LayerFactory:
   
         oldLayerIDs = []
         # inserts all the fucking contours as layers?
-        for frameNumber, contours in data.items():
+        for frameNumber in sorted(data.keys()):
+            contours = data[frameNumber]
             if frameNumber%5000 == 0:
                 print(f"{int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction")
 
             for (x,y,w,h) in contours:
                 foundLayer = False
                 for i in set(range(0, len(self.layers))).difference(set(oldLayerIDs)):
-                    if frameNumber - self.layers[i].lastFrame > 10:
+                    if frameNumber - self.layers[i].lastFrame > self.ttolerance:
                         oldLayerIDs.append(i)
                         continue
 
@@ -67,7 +76,6 @@ class LayerFactory:
                         self.layers[i].add(frameNumber, (x,y,w,h))
                         foundLayer = True
                         break
-
                 if not foundLayer:
                     self.layers.append(Layer(frameNumber, (x,y,w,h)))
 
@@ -78,15 +86,13 @@ class LayerFactory:
         # If one rectangle is above other 
         if(l1[1] <= r2[1] or l2[1] <= r1[1]): 
             return False
-    
         return True
 
-    def fillLayers(self, footagePath, resizeWidth):
+    def fillLayers(self):
         for i in range(len(self.layers)):
             if i % 20 == 0:
                 print(f"filled {int(round(i/len(self.layers),2)*100)}% of all Layers")
-            self.layers[i].fill(footagePath, resizeWidth)
+            self.layers[i].fill(self.footagePath, self.resizeWidth)
 
     def sortLayers(self):
-        # straight bubble
-        self.layers.sort(key = lambda c:c.lastFrame)
+        self.layers.sort(key = lambda c:c.startFrame)
