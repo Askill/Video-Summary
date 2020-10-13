@@ -12,7 +12,8 @@ class Config:
         "tolerance": 10,
         "maxLength": None,
         "ttolerance": 10,
-        "videoBufferLength": 16}
+        "videoBufferLength": 16
+        }
 
     def __init__(self):
         print("Current Config:", self.c)

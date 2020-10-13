@@ -9,7 +9,7 @@ from Config import Config
 
 class VideoReader:
 
-    #buffer = [(frameNumber, frame)]
+    
     listOfFrames = None
 
     def __init__(self, config, setOfFrames = None):
@@ -20,6 +20,7 @@ class VideoReader:
 
         self.videoPath = videoPath
         self.lastFrame = 0
+        #buffer = Queue([(frameNumber, frame), ])
         self.buffer = Queue(config["videoBufferLength"])
         self.vc = cv2.VideoCapture(videoPath)
         self.stopped = False
@@ -81,12 +82,11 @@ class VideoReader:
                     self.vc.set(1, self.listOfFrames[0])
                     self.lastFrame = self.listOfFrames[0]
             else:
-                sleep(0.5)
+                sleep(0.1)
         self.stopped = True
     
     def videoEnded(self):
         return self.stopped
-
 
     def getFPS(self):
         return self.vc.get(cv2.CAP_PROP_FPS)

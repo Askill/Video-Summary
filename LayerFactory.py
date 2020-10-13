@@ -78,10 +78,13 @@ class LayerFactory:
                         if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
                             self.layers[i].add(frameNumber, (x,y,w,h))
                             foundLayer = True
-                            #break
+                            break
 
                 if not foundLayer:
                     self.layers.append(Layer(frameNumber, (x,y,w,h)))
+        self.freeData()
+        self.sortLayers()
+        return self.layers
 
     def contoursOverlay(self, l1, r1, l2, r2): 
         # If one rectangle is on left side of other 

@@ -63,7 +63,7 @@ class ContourExtractor:
             while not videoReader.videoEnded():
                 #FrameCount, frame = videoReader.pop()
                 if frameCount % (60*30) == 0:
-                    print(f"Minutes processed: {frameCount/(60*30)} in {round((time.time() - start), 2)} each")
+                    print(f"{frameCount/(60*30)} Minutes processed in {round((time.time() - start), 2)} each")
                     start = time.time()
 
                 if videoReader.buffer.qsize() == 0:

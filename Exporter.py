@@ -73,7 +73,7 @@ class Exporter:
         frames = [underlay]*maxLength
         exportFrame = 0
 
-
+        
         while not videoReader.videoEnded():
             frameCount, frame = videoReader.pop()
             if frameCount % (60*self.fps) == 0:
@@ -81,11 +81,11 @@ class Exporter:
             if frame is None:
                 print("ContourExtractor: frame was None")
                 continue
+
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
                     for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
-                        (x, y, w, h) = layer.bounds[frameCount - layer.startFrame]
                         factor = videoReader.w / self.resizeWidth
                         x = int(x * factor)
                         y = int(y * factor)
@@ -95,8 +95,6 @@ class Exporter:
                         frame2 = frames[frameCount - layer.startFrame]
                         frame2[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
                         frames[frameCount - layer.startFrame] = np.copy(frame2)
-
-
         videoReader.thread.join()
 
         self.fps = videoReader.getFPS()

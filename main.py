@@ -20,11 +20,10 @@ def demo():
 
     contours = ContourExtractor(config).extractContours()
     print("Time consumed extracting: ", time.time() - start)
-    layerFactory = LayerFactory(config, contours)
-    layerFactory.freeData()
-    layerFactory.sortLayers()
+    layerFactory = LayerFactory(config)
+    layers = layerFactory.extractLayers(contours)
 
-    Exporter(config).exportOverlayed(layerFactory.layers)
+    Exporter(config).exportOverlayed(layers)
     print("Total time: ", time.time() - start)
 
 def init():

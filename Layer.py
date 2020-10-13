@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import imutils
 class Layer:
-    #bounds = [(contour, (x,y,w,h)),]
+    #bounds = [[(x,y,w,h), ],]
 
     startFrame = None
     lastFrame = None
