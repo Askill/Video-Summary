@@ -4,7 +4,7 @@ import numpy as np
 from Layer import Layer
 import cv2
 from VideoReader import VideoReader
-
+import pickle
 
 class Exporter:
     fps = 30
@@ -104,6 +104,11 @@ class Exporter:
             writer.append_data(frame)
 
         writer.close()
+
+    def exportRawData(self, layers):
+        with open(self.outputPath.split(".")[-2] + ".txt", "wb+") as file:
+            pickle.dump(layers, file)
+
 
     def getMaxLengthOfLayers(self, layers):
         maxLength = 0

@@ -19,6 +19,8 @@ class Config:
         print("Current Config:", self.c)
     
     def __getitem__(self, key):
+        if key not in self.c:
+            return None
         return  self.c[key]
 
     def __setitem__(self, key, value):

@@ -47,6 +47,7 @@ class Layer:
                 self.data[i] = frame[y:y+h, x:x+w]
             i+=1
         cap.release()
+
    
 
 
