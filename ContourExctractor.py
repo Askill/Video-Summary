@@ -16,7 +16,7 @@ import concurrent.futures
 from VideoReader import VideoReader
 from queue import Queue
 import threading
-from multiprocessing.pool import ThreadPool
+
 from Config import Config
 
 class ContourExtractor:
@@ -38,6 +38,7 @@ class ContourExtractor:
         self.xDim = 0
         self.yDim = 0       
         self.config = config
+        self.diff = []
 
         print("ContourExtractor initiated")
 
@@ -50,6 +51,7 @@ class ContourExtractor:
         videoReader.fillBuffer()
         frameCount, frame = videoReader.pop()
         
+        
         #init compare image
         frame = imutils.resize(frame, width=self.resizeWidth)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  
@@ -57,36 +59,42 @@ class ContourExtractor:
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
         self.firstFrame = gray
 
-        threads = 16
-        start = time.time()
+        threads = self.config["videoBufferLength"]
+        self.start = time.time()
         with ThreadPool(threads) as pool:
             while not videoReader.videoEnded():
                 #FrameCount, frame = videoReader.pop()
-                if frameCount % (60*30) == 0:
-                    print(f"{frameCount/(60*30)} Minutes processed in {round((time.time() - start), 2)} each")
-                    start = time.time()
+
 
                 if videoReader.buffer.qsize() == 0:
                     time.sleep(.5)
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
-                frameCount = tmpData[-1][0]
                 pool.map(self.getContours, tmpData)
+                #for data in tmpData:
+                    #self.getContours(data)
 
+                frameCount = tmpData[-1][0]
         videoReader.thread.join()
         return self.extractedContours
             
     def getContours(self, data):
         frameCount, frame = data
         firstFrame = self.firstFrame
+        if frameCount % (60*30) == 0:
+            print(f"{frameCount/(60*30)} Minutes processed in {round((time.time() - self.start), 2)} each")
+            self.start = time.time()
         frame = imutils.resize(frame, width=self.resizeWidth)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
         frameDelta = cv2.absdiff(gray, firstFrame)
         thresh = cv2.threshold(frameDelta, self.threashold, 255, cv2.THRESH_BINARY)[1]
         # dilate the thresholded image to fill in holes, then find contours
-        thresh = cv2.dilate(thresh, None, iterations=4)
+        thresh = cv2.dilate(thresh, None, iterations=10)
+        #cv2.imshow("changes x", thresh)
+        #cv2.waitKey(10) & 0XFF
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        self.diff.append(np.count_nonzero(thresh))
         cnts = imutils.grab_contours(cnts)
 
         contours = []
@@ -111,8 +119,7 @@ class ContourExtractor:
                 frame = np.zeros(shape=[self.yDim, self.xDim, 3], dtype=np.uint8)
                 frame = imutils.resize(frame, width=512)
                 frame[y:y+v.shape[0], x:x+v.shape[1]] = v
-                cv2.imshow("changes overlayed", frame)
-                cv2.waitKey(10) & 0XFF
+
         cv2.destroyAllWindows()
 
     def exportContours(self):

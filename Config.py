@@ -2,17 +2,17 @@
 class Config:
     c = {
         "min_area" : 500,
-        "max_area" : 9000,
-        "threashold" : 10,
+        "max_area" : 20000,
+        "threashold" : 13,
         "resizeWidth" : 512,
         "inputPath" : None,
         "outputPath": None,
         "maxLayerLength": 900, 
-        "minLayerLength": 30,    
+        "minLayerLength": 20,    
         "tolerance": 10,
         "maxLength": None,
         "ttolerance": 10,
-        "videoBufferLength": 16
+        "videoBufferLength": 1000
         }
 
     def __init__(self):

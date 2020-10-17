@@ -68,28 +68,46 @@ class VideoReader:
         self.endFrame = self.listOfFrames[-1]
 
         while self.lastFrame < self.endFrame:
-            if not self.buffer.full():
-                if self.lastFrame in self.listOfFrames:
-                    res, frame = self.vc.read()
-                    if res:
-                        self.buffer.put((self.lastFrame, frame))
-                    # since the list is sorted the first element is always the lowest relevant framenumber
-                    # [0,1,2,3,32,33,34,35,67,68,69]
-                    self.listOfFrames.pop(0)
-                    self.lastFrame += 1
-                else:
-                    # if current Frame number is not in list of Frames, we can skip a few frames
-                    self.vc.set(1, self.listOfFrames[0])
-                    self.lastFrame = self.listOfFrames[0]
+            if self.lastFrame in self.listOfFrames:
+                res, frame = self.vc.read()
+                if res:
+                    self.buffer.put((self.lastFrame, frame))
+                # since the list is sorted the first element is always the lowest relevant framenumber
+                # [0,1,2,3,32,33,34,35,67,68,69]
+                self.listOfFrames.pop(0)
+                self.lastFrame += 1
             else:
-                sleep(0.1)
+                # if current Frame number is not in list of Frames, we can skip a few frames
+                self.vc.set(1, self.listOfFrames[0])
+                self.lastFrame = self.listOfFrames[0]
+        
         self.stopped = True
     
     def videoEnded(self):
-        return self.stopped
+        if self.stopped and self.buffer.empty():
+            return True
+        else:
+            return False
 
     def getFPS(self):
         return self.vc.get(cv2.CAP_PROP_FPS)
+
+    def get_file_metadata(self, path, filename, metadata):
+        # Path shouldn't end with backslash, i.e. "E:\Images\Paris"
+        # filename must include extension, i.e. "PID manual.pdf"
+        # Returns dictionary containing all file metadata.
+        sh = win32com.client.gencache.EnsureDispatch('Shell.Application', 0)
+        ns = sh.NameSpace(path)
+
+        # Enumeration is necessary because ns.GetDetailsOf only accepts an integer as 2nd argument
+        file_metadata = dict()
+        item = ns.ParseName(str(filename))
+        for ind, attribute in enumerate(metadata):
+            attr_value = ns.GetDetailsOf(item, ind)
+            if attr_value:
+                file_metadata[attribute] = attr_value
+
+        return file_metadata
         
 
 

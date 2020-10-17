@@ -4,7 +4,6 @@ from ContourExctractor import ContourExtractor
 from Exporter import Exporter
 from LayerFactory import LayerFactory
 from Analyzer import Analyzer
-from VideoReader import VideoReader
 from Config import Config
 from Importer import Importer
 import cv2
@@ -21,6 +20,8 @@ def demo():
     config["outputPath"]  = os.path.join(os.path.dirname(__file__), "output/short.mp4")
 
     if config["importPath"] is None:
+        #ana = Analyzer(config)
+        #ref = ana.avg
         contours = ContourExtractor(config).extractContours()
         print("Time consumed extracting: ", time.time() - start)
         layerFactory = LayerFactory(config)
@@ -30,7 +31,7 @@ def demo():
 
     exporter = Exporter(config)
     exporter.exportRawData(layers)
-    exporter.exportOverlayed(layers)
+    exporter.exportLayers(layers)
     
     print("Total time: ", time.time() - start)
 

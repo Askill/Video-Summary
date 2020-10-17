@@ -10,35 +10,48 @@ import _thread
 import imageio
 import numpy as np
 import matplotlib.pyplot as plt
+from VideoReader import VideoReader
+from multiprocessing.pool import ThreadPool
+import imutils
+
 
 class Analyzer:
-    def __init__(self, videoPath):
+    
+    def __init__(self, config):
         print("Analyzer constructed")
-        data = self.readIntoMem(videoPath)
-
-        vs = cv2.VideoCapture(videoPath)
-        threashold = 13
-        res, image = vs.read()
-        firstFrame = None
-        i = 0
-        diff = []
-        while res:
-            res, frame = vs.read()
-            if not res:
-                break
-            frame = imutils.resize(frame, width=500)
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2LAB)
-            if firstFrame is None:
-                firstFrame = gray
+        videoReader = VideoReader(config)
+        videoReader.fillBuffer()
+        self.config = config
+        self.avg = imutils.resize(np.zeros((videoReader.h,videoReader.w,3),np.float), width=config["resizeWidth"])
+        self.end = videoReader.endFrame
+        self.c = 0
+        start = time.time()
+        fak = 10
+        while not videoReader.videoEnded():
+            self.c, frame = videoReader.pop()
+            if not self.c%fak == 0:
                 continue
-            frameDelta = cv2.absdiff(gray, firstFrame)
-            thresh = cv2.threshold(frameDelta, threashold, 255, cv2.THRESH_BINARY)[1]
-            diff.append(np.count_nonzero(thresh))
-            i+=1
-            if i % (60*30) == 0:
-                print("Minutes processed: ", i/(60*30))
-                #print(diff)
+            if videoReader.endFrame - self.c <= fak:
+                break
+            frame = imutils.resize(frame, width=self.config["resizeWidth"])
+            
 
-        plt.plot(diff)
-        plt.ylabel('some numbers')
-        plt.show()
+            self.avg += frame.astype(np.float)/(self.end/fak)
+            if self.c%(1800*6) == 0:
+                print(f"{self.c/(60*30)} Minutes processed in {round((time.time() - start), 2)} each")
+                start = time.time()
+
+        #print("done")
+        videoReader.thread.join()      
+        self.avg = np.array(np.round(self.avg), dtype=np.uint8)
+        #return self.avg
+        cv2.imshow("changes overlayed", self.avg)
+        cv2.waitKey(10) & 0XFF
+
+
+
+    def average(self, frame):
+        frame = imutils.resize(frame[1], width=self.config["resizeWidth"])
+        self.avg += frame.astype(np.float)/(self.end/5)
+
+

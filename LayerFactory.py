@@ -1,5 +1,6 @@
 from Layer import Layer
 from Config import Config
+from multiprocessing.pool import ThreadPool
 
 class LayerFactory:
     def __init__(self, config, data=None):
@@ -23,10 +24,12 @@ class LayerFactory:
         layers = []
         for i, layer in enumerate(self.layers):
             checks = 0
-            if abs(self.layers[i].bounds[0][0][0] - self.layers[i].bounds[-1][0][0]) < 5:
-                checks += 1
-            if abs(self.layers[i].bounds[0][0][1] - self.layers[i].bounds[-1][0][1]) < 5:
-                checks += 1
+            for bound in layer.bounds[0]:
+                for bound2 in layer.bounds[-1]:
+                    if abs(bound[0] - bound2[0]) < 10:
+                        checks += 1
+                    if abs(bound[1] - bound2[1]) < 10:
+                        checks += 1
             if checks <= 2:
                 layers.append(layer)
         self.layers = layers
@@ -43,7 +46,7 @@ class LayerFactory:
 
 
     def extractLayers(self, data = None):
-        tol = self.tolerance
+        
 
         if self.data is None:
             if data is None:
@@ -57,34 +60,45 @@ class LayerFactory:
         for contour in contours:
             self.layers.append(Layer(frameNumber, contour))
   
-        oldLayerIDs = []
-        # inserts all the fucking contours as layers?
-        for frameNumber in sorted(data.keys()):
-            contours = data[frameNumber]
-            if frameNumber%5000 == 0:
-                print(f"{int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction")
+        self.oldLayerIDs = []
+        
+        with ThreadPool(16) as pool:
+            for frameNumber in sorted(data.keys()):
+                contours = data[frameNumber]
+                if frameNumber%5000 == 0:
+                    print(f"{int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction")
 
-            for (x,y,w,h) in contours:
-                foundLayer = False
-                for i in set(range(0, len(self.layers))).difference(set(oldLayerIDs)):
-                    if frameNumber - self.layers[i].lastFrame > self.ttolerance:
-                        oldLayerIDs.append(i)
-                        continue
+                tmp = [[frameNumber, contour] for contour in contours]
+                #pool.map_async(self.getLayers, tmp)
+                for x in tmp:
+                    self.getLayers(x)
 
-                    for bounds in self.layers[i].bounds[-1]:
-                        if bounds is None:
-                            break
-                        (x2,y2,w2,h2) = bounds
-                        if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
-                            self.layers[i].add(frameNumber, (x,y,w,h))
-                            foundLayer = True
-                            break
-
-                if not foundLayer:
-                    self.layers.append(Layer(frameNumber, (x,y,w,h)))
         self.freeData()
         self.sortLayers()
         return self.layers
+
+    def getLayers(self, data):
+        frameNumber = data[0]
+        bounds = data[1]
+        (x,y,w,h) = bounds
+        tol = self.tolerance
+        foundLayer = False
+        for i in set(range(0, len(self.layers))).difference(set(self.oldLayerIDs)):
+            if frameNumber - self.layers[i].lastFrame > self.ttolerance:
+                self.oldLayerIDs.append(i)
+                continue
+
+            for bounds in self.layers[i].bounds[-1]:
+                if bounds is None:
+                    break
+                (x2,y2,w2,h2) = bounds
+                if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
+                    self.layers[i].add(frameNumber, (x,y,w,h))
+                    foundLayer = True
+                    break
+
+        if not foundLayer:
+            self.layers.append(Layer(frameNumber, (x,y,w,h)))
 
     def contoursOverlay(self, l1, r1, l2, r2): 
         # If one rectangle is on left side of other 

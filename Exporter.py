@@ -45,7 +45,7 @@ class Exporter:
                 continue
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
-            frame2 = underlay
+            frame2 = np.copy(underlay)
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
                     for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
@@ -55,7 +55,8 @@ class Exporter:
                         w = int(w * factor)
                         h = int(h * factor)
                         
-                        frame2[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
+                        frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
+                        cv2.putText(frame2,  str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
             writer.append_data(frame2)
 
 
@@ -94,7 +95,10 @@ class Exporter:
                         # if exportFrame as index instead of frameCount - layer.startFrame  then we have layer after layer
                         frame2 = frames[frameCount - layer.startFrame]
                         frame2[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
+                        
                         frames[frameCount - layer.startFrame] = np.copy(frame2)
+                        cv2.putText(frames[frameCount - layer.startFrame],  str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
+
         videoReader.thread.join()
 
         self.fps = videoReader.getFPS()
