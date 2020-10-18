@@ -10,7 +10,7 @@ import _thread
 import imageio
 import numpy as np
 import matplotlib.pyplot as plt
-from VideoReader import VideoReader
+from Application.VideoReader import VideoReader
 from multiprocessing.pool import ThreadPool
 import imutils
 

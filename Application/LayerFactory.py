@@ -1,5 +1,5 @@
-from Layer import Layer
-from Config import Config
+from Application.Layer import Layer
+from Application.Config import Config
 from multiprocessing.pool import ThreadPool
 
 class LayerFactory:
@@ -12,6 +12,7 @@ class LayerFactory:
         self.maxLayerLength = config["maxLayerLength"]
         self.resizeWidth = config["resizeWidth"]
         self.footagePath = config["inputPath"]
+        self.config = config
         print("LayerFactory constructed")
         self.data = data
         if data is not None:
@@ -25,7 +26,11 @@ class LayerFactory:
         for i, layer in enumerate(self.layers):
             checks = 0
             for bound in layer.bounds[0]:
+                if bound[0] is None:
+                    continue
                 for bound2 in layer.bounds[-1]:
+                    if bound2[0] is None:
+                        continue
                     if abs(bound[0] - bound2[0]) < 10:
                         checks += 1
                     if abs(bound[1] - bound2[1]) < 10:
@@ -58,7 +63,7 @@ class LayerFactory:
         frameNumber = min(data)
         contours = data[frameNumber]
         for contour in contours:
-            self.layers.append(Layer(frameNumber, contour))
+            self.layers.append(Layer(frameNumber, contour, self.config))
   
         self.oldLayerIDs = []
         
@@ -72,9 +77,12 @@ class LayerFactory:
                 #pool.map_async(self.getLayers, tmp)
                 for x in tmp:
                     self.getLayers(x)
-
         self.freeData()
-        self.sortLayers()
+        self.sortLayers()            
+        self.cleanLayers()
+        self.freeData()
+        
+        
         return self.layers
 
     def getLayers(self, data):
@@ -98,7 +106,7 @@ class LayerFactory:
                     break
 
         if not foundLayer:
-            self.layers.append(Layer(frameNumber, (x,y,w,h)))
+            self.layers.append(Layer(frameNumber, (x,y,w,h), self.config))
 
     def contoursOverlay(self, l1, r1, l2, r2): 
         # If one rectangle is on left side of other 
@@ -117,3 +125,7 @@ class LayerFactory:
 
     def sortLayers(self):
         self.layers.sort(key = lambda c:c.startFrame)
+
+    def cleanLayers(self):
+        for layer in self.layers:
+            layer.clusterDelete()

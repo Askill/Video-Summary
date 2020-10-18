@@ -13,11 +13,11 @@ from threading import Thread
 from multiprocessing import Queue, Process, Pool
 from multiprocessing.pool import ThreadPool
 import concurrent.futures
-from VideoReader import VideoReader
+from Application.VideoReader import VideoReader
 from queue import Queue
 import threading
 
-from Config import Config
+from Application.Config import Config
 
 class ContourExtractor:
 

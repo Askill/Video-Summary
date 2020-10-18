@@ -4,18 +4,18 @@ import cv2
 from time import sleep
 from queue import Queue
 import threading
-from Config import Config
+from Application.Config import Config
 
 
 class VideoReader:
-
-    
     listOfFrames = None
+    w = 0
+    h = 0
 
     def __init__(self, config, setOfFrames = None):
         videoPath = config["inputPath"]
         if videoPath is None:
-            print("Video reader needs a videoPath!")
+            print("ERROR: Video reader needs a videoPath!")
             return None
 
         self.videoPath = videoPath
@@ -24,11 +24,15 @@ class VideoReader:
         self.buffer = Queue(config["videoBufferLength"])
         self.vc = cv2.VideoCapture(videoPath)
         self.stopped = False
+        self.getWH()
+        if setOfFrames is not None:
+            self.listOfFrames = sorted(setOfFrames)      
+
+    def getWH(self):
         res, image = self.vc.read()
         self.w = image.shape[1]
         self.h = image.shape[0]
-        if setOfFrames is not None:
-            self.listOfFrames = sorted(setOfFrames)      
+        return (self.w, self.h)
 
     def pop(self):
         return self.buffer.get(block=True)
@@ -91,29 +95,3 @@ class VideoReader:
 
     def getFPS(self):
         return self.vc.get(cv2.CAP_PROP_FPS)
-
-    def get_file_metadata(self, path, filename, metadata):
-        # Path shouldn't end with backslash, i.e. "E:\Images\Paris"
-        # filename must include extension, i.e. "PID manual.pdf"
-        # Returns dictionary containing all file metadata.
-        sh = win32com.client.gencache.EnsureDispatch('Shell.Application', 0)
-        ns = sh.NameSpace(path)
-
-        # Enumeration is necessary because ns.GetDetailsOf only accepts an integer as 2nd argument
-        file_metadata = dict()
-        item = ns.ParseName(str(filename))
-        for ind, attribute in enumerate(metadata):
-            attr_value = ns.GetDetailsOf(item, ind)
-            if attr_value:
-                file_metadata[attribute] = attr_value
-
-        return file_metadata
-        
-
-
-
-
-
-        
-
-

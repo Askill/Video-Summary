@@ -1,9 +1,9 @@
 import imageio
 import imutils
 import numpy as np
-from Layer import Layer
+from Application.Layer import Layer
 import cv2
-from VideoReader import VideoReader
+from Application.VideoReader import VideoReader
 import pickle
 
 class Exporter:
@@ -49,6 +49,8 @@ class Exporter:
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
                     for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                        if x is None:
+                            break
                         factor = videoReader.w / self.resizeWidth
                         x = int(x * factor)
                         y = int(y * factor)
@@ -87,6 +89,8 @@ class Exporter:
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
                     for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                        if x is None:
+                            break
                         factor = videoReader.w / self.resizeWidth
                         x = int(x * factor)
                         y = int(y * factor)

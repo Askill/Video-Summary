@@ -1,12 +1,12 @@
 import os
 import time
-from ContourExctractor import ContourExtractor
-from Exporter import Exporter
-from LayerFactory import LayerFactory
-from Analyzer import Analyzer
-from Config import Config
-from Importer import Importer
-import cv2
+from Application.ContourExctractor import ContourExtractor
+from Application.Exporter import Exporter
+from Application.LayerFactory import LayerFactory
+from Application.Analyzer import Analyzer
+from Application.Config import Config
+from Application.Importer import Importer
+from Application.VideoReader import VideoReader
 #TODO
 #   finden von relevanten Stellen anhand von zu findenen metriken für vergleichsbilder
 
@@ -15,9 +15,13 @@ def demo():
     start = time.time()
     config = Config()
 
+
     config["inputPath"] = os.path.join(os.path.dirname(__file__), "generate test footage/3.mp4")
     #config["importPath"] = os.path.join(os.path.dirname(__file__), "output/short.txt")
     config["outputPath"]  = os.path.join(os.path.dirname(__file__), "output/short.mp4")
+
+    vr = VideoReader(config)
+    config["w"], config["h"] = vr.getWH()
 
     if config["importPath"] is None:
         #ana = Analyzer(config)
