@@ -61,8 +61,8 @@ class Layer:
         mapped = []
         mapping = []
         clusterCount = 1
-        noiseSensitivity = 3/4
-        noiseThreashold = 0.05
+        noiseSensitivity = self.config["noiseSensitivity"] 
+        noiseThreashold = self.config["noiseThreashold"]
         for i, bounds in enumerate(org):
             for j, bound in enumerate(bounds):
                 x = (bound[0] + bound[2]/2) / self.config["w"]
@@ -123,7 +123,8 @@ class Layer:
                     newContours[x].append(org[x][y])      
         
         self.bounds = newContours
-        print(f"{clusterCount} clusters identified {dists}")
+        #print(f"{clusterCount} clusters identified {dists}")
+
         #fig, ax = plt.subplots()
         #x=mapped[:,0]
         #y=mapped[:,1]

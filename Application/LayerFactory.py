@@ -40,11 +40,19 @@ class LayerFactory:
         self.layers = layers
 
 
-    def freeData(self):
+    def freeMin(self):
         self.data.clear()
         layers = []
         for l in self.layers:
-            if l.getLength() < self.maxLayerLength and l.getLength() > self.minLayerLength:
+            if l.getLength() > self.minLayerLength:
+                layers.append(l) 
+        self.layers = layers
+        self.removeStaticLayers()
+    
+    def freeMax(self):
+        layers = []
+        for l in self.layers:
+            if l.getLength() < self.maxLayerLength:
                 layers.append(l) 
         self.layers = layers
         self.removeStaticLayers()
@@ -77,10 +85,11 @@ class LayerFactory:
                 #pool.map_async(self.getLayers, tmp)
                 for x in tmp:
                     self.getLayers(x)
-        self.freeData()
+
+        self.freeMin()
         self.sortLayers()            
         self.cleanLayers()
-        self.freeData()
+        self.freeMax()
         
         
         return self.layers
