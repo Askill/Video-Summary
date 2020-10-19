@@ -16,7 +16,7 @@ def demo():
     config = Config()
 
 
-    config["inputPath"] = os.path.join(os.path.dirname(__file__), "generate test footage/3.mp4")
+    config["inputPath"] = os.path.join(os.path.dirname(__file__), "generate test footage/out.mp4")
     #config["importPath"] = os.path.join(os.path.dirname(__file__), "output/short.txt")
     config["outputPath"]  = os.path.join(os.path.dirname(__file__), "output/short.mp4")
 
@@ -29,7 +29,9 @@ def demo():
         contours = ContourExtractor(config).extractContours()
         print("Time consumed extracting: ", time.time() - start)
         layerFactory = LayerFactory(config)
+        
         layers = layerFactory.extractLayers(contours)
+        layerFactory.fillLayers()
     else:
         layers = Importer(config).importRawData()
 

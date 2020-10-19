@@ -1,6 +1,10 @@
 from Application.Layer import Layer
 from Application.Config import Config
+from Application.VideoReader import VideoReader
+from Application.Exporter import Exporter
 from multiprocessing.pool import ThreadPool
+import cv2
+import numpy as np
 
 class LayerFactory:
     def __init__(self, config, data=None):
@@ -17,8 +21,6 @@ class LayerFactory:
         self.data = data
         if data is not None:
             self.extractLayers(data)
-
-
 
     def removeStaticLayers(self):
         '''Removes Layers with little to no movement'''
@@ -127,10 +129,32 @@ class LayerFactory:
         return True
 
     def fillLayers(self):
-        for i in range(len(self.layers)):
-            if i % 20 == 0:
-                print(f"filled {int(round(i/len(self.layers),2)*100)}% of all Layers")
-            self.layers[i].fill(self.footagePath, self.resizeWidth)
+
+        listOfFrames = Exporter(self.config).makeListOfFrames(self.layers)
+        videoReader = VideoReader(self.config, listOfFrames)
+        videoReader.fillBuffer()
+
+        while not videoReader.videoEnded():
+            frameCount, frame = videoReader.pop()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            for i, layer in enumerate(self.layers):
+                if i % 20 == 0:
+                    print(f"filled {int(round(i/len(self.layers),2)*100)}% of all Layers")
+                
+                if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
+                    data = []
+                    for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                        if x is None:
+                            break
+                        factor = videoReader.w / self.resizeWidth
+                        x = int(x * factor)
+                        y = int(y * factor)
+                        w = int(w * factor)
+                        h = int(h * factor)
+                        data.append(np.copy(frame[y:y+h, x:x+w]))
+                    layer.data.append(data)
+
+        videoReader.thread.join()
 
     def sortLayers(self):
         self.layers.sort(key = lambda c:c.startFrame)

@@ -132,4 +132,4 @@ class Exporter:
             frameNumbers.update(
                 list(range(layer.startFrame, layer.startFrame + len(layer.bounds))))
 
-        return list(frameNumbers)
+        return sorted(list(frameNumbers))
