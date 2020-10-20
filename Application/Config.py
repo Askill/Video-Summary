@@ -14,7 +14,8 @@ class Config:
         "ttolerance": 60,
         "videoBufferLength": 1000,
         "noiseThreashold": 0.05,
-        "noiseSensitivity": 3/4
+        "noiseSensitivity": 3/4,
+        "LayersPerContour": 5
         }
 
     def __init__(self):

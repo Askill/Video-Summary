@@ -101,22 +101,25 @@ class LayerFactory:
         bounds = data[1]
         (x,y,w,h) = bounds
         tol = self.tolerance
-        foundLayer = False
-        for i in set(range(0, len(self.layers))).difference(set(self.oldLayerIDs)):
+        foundLayer = 0
+
+        for i in range(0, len(self.layers)):
+            if i in self.oldLayerIDs:
+                continue
             if frameNumber - self.layers[i].lastFrame > self.ttolerance:
                 self.oldLayerIDs.append(i)
                 continue
 
             for bounds in self.layers[i].bounds[-1]:
-                if bounds is None:
+                if bounds is None or foundLayer >= self.config["LayersPerContour"]:
                     break
                 (x2,y2,w2,h2) = bounds
                 if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
                     self.layers[i].add(frameNumber, (x,y,w,h))
-                    foundLayer = True
-                    break
+                    foundLayer += 1
+                    #break
 
-        if not foundLayer:
+        if foundLayer == 0:
             self.layers.append(Layer(frameNumber, (x,y,w,h), self.config))
 
     def contoursOverlay(self, l1, r1, l2, r2): 
