@@ -12,10 +12,11 @@ class Config:
         "tolerance": 20,
         "maxLength": None,
         "ttolerance": 60,
-        "videoBufferLength": 1000,
+        "videoBufferLength": 128,
         "noiseThreashold": 0.05,
         "noiseSensitivity": 3/4,
-        "LayersPerContour": 5
+        "LayersPerContour": 5,
+        "averageFrames": 10
         }
 
     def __init__(self):

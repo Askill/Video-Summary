@@ -39,6 +39,8 @@ class ContourExtractor:
         self.yDim = 0       
         self.config = config
         self.diff = []
+        self.lastFrames = None
+        self.averages = dict()
 
         print("ContourExtractor initiated")
 
@@ -70,6 +72,7 @@ class ContourExtractor:
                     time.sleep(.5)
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
+                self.computeMovingAverage(tmpData)
                 pool.map(self.getContours, tmpData)
                 #for data in tmpData:
                     #self.getContours(data)
@@ -77,16 +80,47 @@ class ContourExtractor:
                 frameCount = tmpData[-1][0]
         videoReader.thread.join()
         return self.extractedContours
-            
+    
+    def computeMovingAverage(self, frames):
+        avg = []
+        averageFrames = self.config["averageFrames"]
+        if frames[0][0] < averageFrames:
+            frame = frames[0][1]
+            for j in range(0, len(frames)):
+                frameNumber, _ = frames[j]
+                frame = imutils.resize(frame, width=self.resizeWidth)
+                self.averages[frameNumber] = frame
+                # put last x frames into a buffer
+            self.lastFrames = frames[-averageFrames:] 
+            return
+
+        if self.lastFrames is not None:
+            frames = self.lastFrames + frames 
+
+        tmp = [[j, frames, averageFrames]for j in range(averageFrames, len(frames))]
+        with ThreadPool(16) as pool:
+            pool.map(self.averageDaFrames, tmp)
+
+
+    def averageDaFrames(self, dat):
+        j, frames, averageFrames = dat
+        frameNumber, frame = frames[j]
+        frame = imutils.resize(frame, width=self.resizeWidth)
+        avg = frame/averageFrames
+        for jj in reversed(range(averageFrames-1)):
+            avg += imutils.resize(frames[j-jj][1], width=self.resizeWidth)/averageFrames
+        self.averages[frameNumber] = np.array(np.round(avg), dtype=np.uint8)
+
     def getContours(self, data):
         frameCount, frame = data
-        firstFrame = self.firstFrame
+        while frameCount not in self.averages:
+            time.sleep(0.1)
+        firstFrame = self.averages.pop(frameCount, None)
+        firstFrame = self.prepareFrame(firstFrame)
         if frameCount % (60*30) == 0:
             print(f"{frameCount/(60*30)} Minutes processed in {round((time.time() - self.start), 2)} each")
             self.start = time.time()
-        frame = imutils.resize(frame, width=self.resizeWidth)
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (5, 5), 0)
+        gray = self.prepareFrame(frame)
         frameDelta = cv2.absdiff(gray, firstFrame)
         thresh = cv2.threshold(frameDelta, self.threashold, 255, cv2.THRESH_BINARY)[1]
         # dilate the thresholded image to fill in holes, then find contours
@@ -109,6 +143,12 @@ class ContourExtractor:
         if len(contours) != 0 and contours is not None: 
             # this should be thread safe
             self.extractedContours[frameCount] = contours
+
+    def prepareFrame(self, frame):
+        frame = imutils.resize(frame, width=self.resizeWidth)
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.GaussianBlur(gray, (5, 5), 0)
+        return gray
 
     def displayContours(self):
         values = self.extractedContours.values()
