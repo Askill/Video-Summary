@@ -86,9 +86,9 @@ class ContourExtractor:
         averageFrames = self.config["averageFrames"]
         if frames[0][0] < averageFrames:
             frame = frames[0][1]
+            frame = self.prepareFrame(frame)
             for j in range(0, len(frames)):
-                frameNumber, _ = frames[j]
-                frame = imutils.resize(frame, width=self.resizeWidth)
+                frameNumber, _ = frames[j] 
                 self.averages[frameNumber] = frame
                 # put last x frames into a buffer
             self.lastFrames = frames[-averageFrames:] 
@@ -101,14 +101,17 @@ class ContourExtractor:
         with ThreadPool(16) as pool:
             pool.map(self.averageDaFrames, tmp)
 
+        self.lastFrames = frames[-averageFrames:] 
+
 
     def averageDaFrames(self, dat):
         j, frames, averageFrames = dat
         frameNumber, frame = frames[j]
-        frame = imutils.resize(frame, width=self.resizeWidth)
+        frame = self.prepareFrame(frame)
+        
         avg = frame/averageFrames
         for jj in reversed(range(averageFrames-1)):
-            avg += imutils.resize(frames[j-jj][1], width=self.resizeWidth)/averageFrames
+            avg += self.prepareFrame(frames[j-jj][1])/averageFrames
         self.averages[frameNumber] = np.array(np.round(avg), dtype=np.uint8)
 
     def getContours(self, data):
@@ -116,7 +119,7 @@ class ContourExtractor:
         while frameCount not in self.averages:
             time.sleep(0.1)
         firstFrame = self.averages.pop(frameCount, None)
-        firstFrame = self.prepareFrame(firstFrame)
+        #firstFrame = self.prepareFrame(firstFrame)
         if frameCount % (60*30) == 0:
             print(f"{frameCount/(60*30)} Minutes processed in {round((time.time() - self.start), 2)} each")
             self.start = time.time()

@@ -84,13 +84,13 @@ class LayerFactory:
                     print(f"{int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction")
 
                 tmp = [[frameNumber, contour] for contour in contours]
-                #pool.map_async(self.getLayers, tmp)
-                for x in tmp:
-                    self.getLayers(x)
+                pool.map(self.getLayers, tmp)
+                #for x in tmp:
+                    #self.getLayers(x)
 
         self.freeMin()
         self.sortLayers()            
-        self.cleanLayers()
+        #self.cleanLayers()
         self.freeMax()
         
         
