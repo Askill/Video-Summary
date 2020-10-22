@@ -61,8 +61,6 @@ class LayerFactory:
 
 
     def extractLayers(self, data = None):
-        
-
         if self.data is None:
             if data is None:
                 print("LayerFactory data was none")
@@ -90,7 +88,7 @@ class LayerFactory:
 
         self.freeMin()
         self.sortLayers()            
-        #self.cleanLayers()
+        self.cleanLayers()
         self.freeMax()
         
         

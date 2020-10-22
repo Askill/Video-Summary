@@ -47,27 +47,14 @@ class ContourExtractor:
     def extractContours(self):
         extractedContours = dict()        
         videoReader = VideoReader(self.config)
-        self.xDim = videoReader.w
-        self.yDim = videoReader.h
-         
+        
         videoReader.fillBuffer()
-        frameCount, frame = videoReader.pop()
-        
-        
-        #init compare image
-        frame = imutils.resize(frame, width=self.resizeWidth)
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  
-        #gray = np.asarray(gray[:,:,1]/2 + gray[:,:,2]/2).astype(np.uint8) 
-        gray = cv2.GaussianBlur(gray, (5, 5), 0)
-        self.firstFrame = gray
 
         threads = self.config["videoBufferLength"]
         self.start = time.time()
         with ThreadPool(threads) as pool:
             while not videoReader.videoEnded():
                 #FrameCount, frame = videoReader.pop()
-
-
                 if videoReader.buffer.qsize() == 0:
                     time.sleep(.5)
 
@@ -76,50 +63,17 @@ class ContourExtractor:
                 pool.map(self.getContours, tmpData)
                 #for data in tmpData:
                     #self.getContours(data)
-
                 frameCount = tmpData[-1][0]
+
         videoReader.thread.join()
         return self.extractedContours
     
-    def computeMovingAverage(self, frames):
-        avg = []
-        averageFrames = self.config["averageFrames"]
-        if frames[0][0] < averageFrames:
-            frame = frames[0][1]
-            frame = self.prepareFrame(frame)
-            for j in range(0, len(frames)):
-                frameNumber, _ = frames[j] 
-                self.averages[frameNumber] = frame
-                # put last x frames into a buffer
-            self.lastFrames = frames[-averageFrames:] 
-            return
-
-        if self.lastFrames is not None:
-            frames = self.lastFrames + frames 
-
-        tmp = [[j, frames, averageFrames]for j in range(averageFrames, len(frames))]
-        with ThreadPool(16) as pool:
-            pool.map(self.averageDaFrames, tmp)
-
-        self.lastFrames = frames[-averageFrames:] 
-
-
-    def averageDaFrames(self, dat):
-        j, frames, averageFrames = dat
-        frameNumber, frame = frames[j]
-        frame = self.prepareFrame(frame)
-        
-        avg = frame/averageFrames
-        for jj in reversed(range(averageFrames-1)):
-            avg += self.prepareFrame(frames[j-jj][1])/averageFrames
-        self.averages[frameNumber] = np.array(np.round(avg), dtype=np.uint8)
-
     def getContours(self, data):
         frameCount, frame = data
         while frameCount not in self.averages:
             time.sleep(0.1)
         firstFrame = self.averages.pop(frameCount, None)
-        #firstFrame = self.prepareFrame(firstFrame)
+       
         if frameCount % (60*30) == 0:
             print(f"{frameCount/(60*30)} Minutes processed in {round((time.time() - self.start), 2)} each")
             self.start = time.time()
@@ -153,28 +107,35 @@ class ContourExtractor:
         gray = cv2.GaussianBlur(gray, (5, 5), 0)
         return gray
 
-    def displayContours(self):
-        values = self.extractedContours.values()
-        for xx in values:
-            for v1 in xx:
-                (x, y, w, h) = v1[1]
-                v = v1[0]
-                frame = np.zeros(shape=[self.yDim, self.xDim, 3], dtype=np.uint8)
-                frame = imutils.resize(frame, width=512)
-                frame[y:y+v.shape[0], x:x+v.shape[1]] = v
+    def computeMovingAverage(self, frames):
+        avg = []
+        averageFrames = self.config["averageFrames"]
+        if frames[0][0] < averageFrames:
+            frame = frames[0][1]
+            frame = self.prepareFrame(frame)
+            for j in range(0, len(frames)):
+                frameNumber, _ = frames[j] 
+                self.averages[frameNumber] = frame
+                # put last x frames into a buffer
+            self.lastFrames = frames[-averageFrames:] 
+            return
 
-        cv2.destroyAllWindows()
+        if self.lastFrames is not None:
+            frames = self.lastFrames + frames 
 
-    def exportContours(self):
-        values = self.extractedContours.values()
-        frames = []
-        for xx in values:
-            for v1 in xx:
-                (x, y, w, h) = v1[1]
-                v = v1[0]
-                frame = np.zeros(shape=[self.yDim, self.xDim, 3], dtype=np.uint8)
-                frame = imutils.resize(frame, width=512)
-                frame[y:y+v.shape[0], x:x+v.shape[1]] = v
-                frames.append(frame)
-        return frames
+        tmp = [[j, frames, averageFrames]for j in range(averageFrames, len(frames))]
+        with ThreadPool(16) as pool:
+            pool.map(self.averageDaFrames, tmp)
 
+        self.lastFrames = frames[-averageFrames:] 
+
+
+    def averageDaFrames(self, dat):
+        j, frames, averageFrames = dat
+        frameNumber, frame = frames[j]
+        frame = self.prepareFrame(frame)
+        
+        avg = frame/averageFrames
+        for jj in reversed(range(averageFrames-1)):
+            avg += self.prepareFrame(frames[j-jj][1])/averageFrames
+        self.averages[frameNumber] = np.array(np.round(avg), dtype=np.uint8)
