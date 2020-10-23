@@ -3,7 +3,7 @@ class Config:
     c = {
         "min_area" : 500,
         "max_area" : 40000,
-        "threashold" : 10,
+        "threashold" : 5,
         "resizeWidth" : 512,
         "inputPath" : None,
         "outputPath": None,

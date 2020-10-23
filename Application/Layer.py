@@ -90,7 +90,7 @@ class Layer:
                 if y > maxm:
                     maxm = y
 
-            if maxm > len(mapped)*(noiseSensitivity):
+            if maxm > len(mapped)*(noiseSensitivity) and clusterCount+1<=len(kmeans.cluster_centers_):
                 clusterCount += 1
             else: 
                 centers = kmeans.cluster_centers_

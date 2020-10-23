@@ -7,6 +7,8 @@ from Application.Analyzer import Analyzer
 from Application.Config import Config
 from Application.Importer import Importer
 from Application.VideoReader import VideoReader
+from Application.LayerManager import LayerManager
+from Application.Classifiers import *
 #TODO
 #   finden von relevanten Stellen anhand von zu findenen metriken für vergleichsbilder
 
@@ -15,9 +17,8 @@ def demo():
     start = time.time()
     config = Config()
 
-
     config["inputPath"] = os.path.join(os.path.dirname(__file__), "generate test footage/3.mp4")
-    #config["importPath"] = os.path.join(os.path.dirname(__file__), "output/short.txt")
+    config["importPath"] = os.path.join(os.path.dirname(__file__), "output/short.txt")
     config["outputPath"]  = os.path.join(os.path.dirname(__file__), "output/short.mp4")
 
     vr = VideoReader(config)
@@ -31,13 +32,14 @@ def demo():
         layerFactory = LayerFactory(config)
         
         layers = layerFactory.extractLayers(contours)
-        #layerFactory.fillLayers()
+        layerManager = LayerManager(config, layers)
+        layerManager.cleanLayers()
+        layers = layerManager.layers
     else:
         layers = Importer(config).importRawData()
 
     exporter = Exporter(config)
-    exporter.exportRawData(layers)
-    exporter.exportLayers(layers)
+    exporter.export(layers)
     
     print("Total time: ", time.time() - start)
 

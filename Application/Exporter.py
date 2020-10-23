@@ -16,12 +16,18 @@ class Exporter:
         self.config = config
         print("Exporter initiated")
 
-    def export(self):
-        fps = self.fps
-        writer = imageio.get_writer(outputPath, fps=fps)
-        for frame in frames:
-            writer.append_data(np.array(frame))
-        writer.close()
+    def export(self, layers, raw = True, layered = False, overlayed = True):
+        
+        if raw:
+            self.exportRawData(layers)
+        if layered and overlayed:
+            print("Layered and Individual are mutially exclusive, Individual was choosen automatically")
+            overlayed = False
+        if layered and not overlayed:
+            self.exportLayers(layers)
+        if overlayed and not layered:
+            self.exportOverlayed(layers)
+    
 
     def exportLayers(self,  layers):
 
@@ -98,7 +104,7 @@ class Exporter:
                         h = int(h * factor)
                         # if exportFrame as index instead of frameCount - layer.startFrame  then we have layer after layer
                         frame2 = frames[frameCount - layer.startFrame]
-                        frame2[y:y+h, x:x+w] = frame[y:y+h, x:x+w]
+                        frame2[y:y+h, x:x+w] = frame2[y:y+h, x:x+w]/2 + frame[y:y+h, x:x+w]/2
                         
                         frames[frameCount - layer.startFrame] = np.copy(frame2)
                         cv2.putText(frames[frameCount - layer.startFrame],  str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
