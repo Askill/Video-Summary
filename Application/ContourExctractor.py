@@ -21,8 +21,8 @@ from Application.Config import Config
 
 class ContourExtractor:
 
-    #X = {frame_number: [(contour, (x,y,w,h)), ...], }
-
+    #extracedContours = {frame_number: [(contour, (x,y,w,h)), ...], }
+    # dict with frame numbers as keys and the contour bounds of every contour for that frame 
 
     def getextractedContours(self):
         return self.extractedContours
@@ -44,17 +44,15 @@ class ContourExtractor:
 
         print("ContourExtractor initiated")
 
-    def extractContours(self):
-        extractedContours = dict()        
-        videoReader = VideoReader(self.config)
-        
+    def extractContours(self):      
+        videoReader = VideoReader(self.config)    
         videoReader.fillBuffer()
 
         threads = self.config["videoBufferLength"]
         self.start = time.time()
+        # start a bunch of frames and let them read from the video reader buffer until the video reader reaches EOF
         with ThreadPool(threads) as pool:
             while not videoReader.videoEnded():
-                #FrameCount, frame = videoReader.pop()
                 if videoReader.buffer.qsize() == 0:
                     time.sleep(.5)
 
@@ -70,6 +68,7 @@ class ContourExtractor:
     
     def getContours(self, data):
         frameCount, frame = data
+        # wait for the reference frame, which is calculated by averaging some revious frames
         while frameCount not in self.averages:
             time.sleep(0.1)
         firstFrame = self.averages.pop(frameCount, None)
@@ -77,6 +76,7 @@ class ContourExtractor:
         if frameCount % (60*30) == 0:
             print(f"{frameCount/(60*30)} Minutes processed in {round((time.time() - self.start), 2)} each")
             self.start = time.time()
+
         gray = self.prepareFrame(frame)
         frameDelta = cv2.absdiff(gray, firstFrame)
         thresh = cv2.threshold(frameDelta, self.threashold, 255, cv2.THRESH_BINARY)[1]

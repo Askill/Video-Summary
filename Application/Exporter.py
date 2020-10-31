@@ -21,7 +21,7 @@ class Exporter:
         if raw:
             self.exportRawData(layers)
         if layered and overlayed:
-            print("Layered and Individual are mutially exclusive, Individual was choosen automatically")
+            print("Layered and Individual are mutually exclusive, individual was choosen automatically")
             overlayed = False
         if layered and not overlayed:
             self.exportLayers(layers)

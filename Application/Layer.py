@@ -17,6 +17,16 @@ class Layer:
     length = None
 
     def __init__(self, startFrame, data, config):
+        '''returns a Layer object
+        
+        Layers are collections of contours with a StartFrame, 
+        which is the number of the frame the first contour of
+        this layer was extraced from
+
+        A Contour is a CV2 Contour, which is a y*x*3 rgb numpy array,
+        but we only care about the corners of the contours. 
+        So we save the bounds (x,y,w,h) in bounds[] and the actual content in data[] 
+        '''
         self.startFrame = startFrame
         self.lastFrame = startFrame
         self.config = config
@@ -25,22 +35,28 @@ class Layer:
         self.bounds.append([data])
         #print("Layer constructed")
 
-    def add(self, frameNumber, data):
+    def add(self, frameNumber, bound):
+        '''Adds a bound'''
         if not self.startFrame + len(self.bounds) < frameNumber:
             if len(self.bounds[self.startFrame - frameNumber]) >= 1:
-                self.bounds[self.startFrame - frameNumber].append(data)
+                self.bounds[self.startFrame - frameNumber].append(bound)
         else:
             self.lastFrame = frameNumber
-            self.bounds.append([data])
+            self.bounds.append([bound])
 
         self.getLength()
 
     def getLength(self):
+        return len(self)
+
+    def __len__(self):
         self.length = len(self.bounds)
         return self.length
     
     def fill(self, inputPath, resizeWidth):
-        '''reads in the contour data, needed for export'''
+        '''deprecated
+        
+        Fills the data[] array by iterateing over the bounds'''
         
         cap = cv2.VideoCapture(inputPath) 
         self.data = [None]*len(self.bounds)
@@ -57,12 +73,18 @@ class Layer:
         cap.release()
 
     def clusterDelete(self):
+        '''Uses a cluster analysis to remove contours which are not the result of movement'''
         org = self.bounds
+        if len(org) == 1:
+            return
         mapped = []
         mapping = []
         clusterCount = 1
         noiseSensitivity = self.config["noiseSensitivity"] 
         noiseThreashold = self.config["noiseThreashold"]
+
+        # calculates the middle of each contour in the 2d bounds[] and saves it in 1d list
+        # and saves the 2d indexes in a mapping array
         for i, bounds in enumerate(org):
             for j, bound in enumerate(bounds):
                 x = (bound[0] + bound[2]/2) / self.config["w"]
@@ -76,6 +98,7 @@ class Layer:
         centers = []
         kmeans = None
 
+        # the loop isn't nessecary (?) if the number of clusters is known, since it isn't the loop tries to optimize
         while True:
             kmeans = KMeans(init="random", n_clusters=clusterCount, n_init=5, max_iter=300, random_state=42)
             kmeans.fit(mapped)
@@ -96,12 +119,21 @@ class Layer:
                 centers = kmeans.cluster_centers_
                 break
 
+        # transformes the labels array
+        # new array:
+        # the index is the cluster id, the array is the id of the contour 
+        # [
+        # [1,2,3]
+        # [3,4,5]
+        # [6,7,8,9]   
+        # ]
         classed = [[]]
         for i, x in enumerate(list(labels)):
             while len(classed) <= x:
                 classed.append([])
             classed[x].append(i)
 
+        # calculates the euclidean distance (without the sqrt) of each point in a cluster to the cluster center
         dists = []
         for num, cen in enumerate(centers):
             dist = 0
@@ -110,9 +142,10 @@ class Layer:
             dist/=len(classed[num])
             dists.append(dist*1000)
 
+        # copy all contours of the clusters with more movement than the threshold
         newContours = [[]]
         for i, dis in enumerate(dists):
-            # copy contours which are spread out, delete rest by not yopying them 
+            # copy contours which are spread out, delete rest by not copying them 
             if dis > noiseThreashold:
                 for j in classed[i]:
                     x, y = mapping[j]

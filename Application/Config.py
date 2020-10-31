@@ -12,7 +12,7 @@ class Config:
         "tolerance": 20,
         "maxLength": None,
         "ttolerance": 60,
-        "videoBufferLength": 128,
+        "videoBufferLength": 16,
         "noiseThreashold": 0.1,
         "noiseSensitivity": 3/4,
         "LayersPerContour": 5,
@@ -20,6 +20,7 @@ class Config:
         }
 
     def __init__(self):
+        '''This is basically just a wrapper for a json / python dict'''
         print("Current Config:", self.c)
     
     def __getitem__(self, key):

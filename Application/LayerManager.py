@@ -3,9 +3,10 @@ from Application.Config import Config
 from Application.VideoReader import VideoReader
 from Application.Exporter import Exporter
 from multiprocessing.pool import ThreadPool
+from Application.Classifiers.Classifier import Classifier
 import cv2
 import numpy as np
-
+import time
 class LayerManager:
     def __init__(self, config, layers):
         self.data = {}
@@ -17,12 +18,16 @@ class LayerManager:
         self.resizeWidth = config["resizeWidth"]
         self.footagePath = config["inputPath"]
         self.config = config
+        self.classifier = Classifier()
+        self.tags = []
         print("LayerManager constructed")
+
+
 
     def cleanLayers(self):
         self.freeMin()
         self.sortLayers()            
-        self.cleanLayers()
+        #self.cleanLayers2()
         self.freeMax()
 
     def removeStaticLayers(self):
@@ -52,7 +57,7 @@ class LayerManager:
             if l.getLength() > self.minLayerLength:
                 layers.append(l) 
         self.layers = layers
-        self.removeStaticLayers()
+        
     
     def freeMax(self):
         layers = []
@@ -60,39 +65,45 @@ class LayerManager:
             if l.getLength() < self.maxLayerLength:
                 layers.append(l) 
         self.layers = layers
-        self.removeStaticLayers()
+        
 
-    def fillLayers(self):
+    def tagLayers(self):
+        '''Use classifieres the tag all Layers, by reading the contour content from the original video, then applying the classifier'''
+        exporter = Exporter(self.config)
+        start = time.time()
+        for i, layer in enumerate(self.layers):
+            print(f"{round(i/len(self.layers)*100,2)} {round((time.time() - start), 2)}")
+            start = time.time()
+            if len(layer.bounds[0]) == 0:
+                continue
+            listOfFrames = exporter.makeListOfFrames([layer])
 
-        listOfFrames = Exporter(self.config).makeListOfFrames(self.layers)
-        videoReader = VideoReader(self.config, listOfFrames)
-        videoReader.fillBuffer()
+            videoReader = VideoReader(self.config, listOfFrames)
+            videoReader.fillBuffer()
 
-        while not videoReader.videoEnded():
-            frameCount, frame = videoReader.pop()
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            for i, layer in enumerate(self.layers):
-                if i % 20 == 0:
-                    print(f"filled {int(round(i/len(self.layers),2)*100)}% of all Layers")
-                
-                if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
-                    data = []
-                    for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
-                        if x is None:
-                            break
-                        factor = videoReader.w / self.resizeWidth
-                        x = int(x * factor)
-                        y = int(y * factor)
-                        w = int(w * factor)
-                        h = int(h * factor)
-                        data.append(np.copy(frame[y:y+h, x:x+w]))
-                    layer.data.append(data)
+            while not videoReader.videoEnded():
+                frameCount, frame = videoReader.pop()
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                data = []
+                for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                    if x is None:
+                        break
+                    factor = videoReader.w / self.resizeWidth
+                    x = int(x * factor)
+                    y = int(y * factor)
+                    w = int(w * factor)
+                    h = int(h * factor)
+                    data.append(np.copy(frame[y:y+h, x:x+w]))
+                layer.data.append(data)
+            tags = self.classifier.tagLayer(layer.data)
+            print(tags)
+            self.tags.append(tags)
 
-        videoReader.thread.join()
+            videoReader.thread.join()
 
     def sortLayers(self):
         self.layers.sort(key = lambda c:c.startFrame)
 
-    def cleanLayers(self):
+    def cleanLayers2(self):
         for layer in self.layers:
             layer.clusterDelete()

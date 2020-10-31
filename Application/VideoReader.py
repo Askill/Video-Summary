@@ -24,11 +24,11 @@ class VideoReader:
         self.buffer = Queue(config["videoBufferLength"])
         self.vc = cv2.VideoCapture(videoPath)
         self.stopped = False
-        self.getWH()
         if setOfFrames is not None:
             self.listOfFrames = sorted(setOfFrames)      
 
     def getWH(self):
+        '''get width and height'''
         res, image = self.vc.read()
         self.w = image.shape[1]
         self.h = image.shape[0]
@@ -37,15 +37,11 @@ class VideoReader:
     def pop(self):
         return self.buffer.get(block=True)
 
-    def get(self):
-        return self.buffer[-1]
-
     def fillBuffer(self):
         if self.buffer.full():
             print("VideoReader::fillBuffer was called when buffer was full.")
         self.endFrame = int(self.vc.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        #self.endFrame = 10*60*30
         if self.listOfFrames is not None:
             self.thread = threading.Thread(target=self.readFramesByList, args=())
         else:
@@ -57,6 +53,7 @@ class VideoReader:
         self.vc.release()
 
     def readFrames(self):
+        '''Reads video from start to finish'''
         while self.lastFrame < self.endFrame:
             res, frame = self.vc.read()
             if res:
@@ -64,9 +61,9 @@ class VideoReader:
             self.lastFrame += 1
 
         self.stopped = True
-
     
     def readFramesByList(self):
+        '''Reads all frames from a list of frame numbers'''
         self.vc.set(1, self.listOfFrames[0])
         self.lastFrame = self.listOfFrames[0]
         self.endFrame = self.listOfFrames[-1]
@@ -76,6 +73,8 @@ class VideoReader:
                 res, frame = self.vc.read()
                 if res:
                     self.buffer.put((self.lastFrame, frame))
+                else:
+                    print("READING FRAMES IS FALSE")
                 # since the list is sorted the first element is always the lowest relevant framenumber
                 # [0,1,2,3,32,33,34,35,67,68,69]
                 self.listOfFrames.pop(0)
