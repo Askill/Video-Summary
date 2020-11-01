@@ -27,7 +27,7 @@ class LayerManager:
     def cleanLayers(self):
         self.freeMin()
         self.sortLayers()            
-        #self.cleanLayers2()
+        self.cleanLayers2()
         self.freeMax()
 
     def removeStaticLayers(self):

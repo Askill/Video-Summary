@@ -100,7 +100,7 @@ class Layer:
 
         # the loop isn't nessecary (?) if the number of clusters is known, since it isn't the loop tries to optimize
         while True:
-            kmeans = KMeans(init="random", n_clusters=clusterCount, n_init=5, max_iter=300, random_state=42)
+            kmeans = KMeans(init="random", n_clusters=clusterCount, n_init=10, max_iter=300, random_state=42)
             kmeans.fit(mapped)
             labels = list(kmeans.labels_)
 

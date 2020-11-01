@@ -24,6 +24,7 @@ class VideoReader:
         self.buffer = Queue(config["videoBufferLength"])
         self.vc = cv2.VideoCapture(videoPath)
         self.stopped = False
+        self.getWH()
         if setOfFrames is not None:
             self.listOfFrames = sorted(setOfFrames)      
 

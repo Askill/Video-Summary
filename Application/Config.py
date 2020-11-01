@@ -13,7 +13,7 @@ class Config:
         "maxLength": None,
         "ttolerance": 60,
         "videoBufferLength": 16,
-        "noiseThreashold": 0.1,
+        "noiseThreashold": 0.3,
         "noiseSensitivity": 3/4,
         "LayersPerContour": 5,
         "averageFrames": 10
