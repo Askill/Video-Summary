@@ -7,6 +7,7 @@ import tensorflow as tf
 import cv2
 import os
 import json
+import imutils
 from Application.Classifiers.ClassifierInterface import ClassifierInterface
 
 
@@ -32,20 +33,36 @@ class Classifier(ClassifierInterface):
                     #print(self.classes[classes[i]])
                     return self.classes[classes[i]]
 
-
     def tagLayer(self, data):
         res = []
         for cnts in data:
             for cnt in cnts:
                 if cnt.any():
+                    cnt= imutils.resize(cnt, width=320)
                     x = self.detect(cnt)
-                    if x not in res:
-                        res.append(x)
-                    if x is not None:
-                        print(x)
-                        cv2.imshow("changes x", cnt)
-                        cv2.waitKey(10) & 0XFF
-        return res
+
+                    res.append(x)
+
+        di = dict()
+        for re in res:
+            if re not in di:
+                di[re] = 0
+            di[re]+=1
+
+        # remove all tags that occour infrequently
+        # if a giraff is only seen in 2 out of 100 frames, there probably wasn't a giraff in the layer
+        # 
+        di.pop(None, None)
+        total = 0
+        for value in di.values():
+            total += value
+
+        result = []
+        for key, value in di.items():
+            if value > len(data) / len(di) / 2:
+                result.append(key)
+
+        return result
 
     # Detector API can be changed out given the I/O remains the same
     # this way you can use a different N-Net if you like to
