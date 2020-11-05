@@ -38,6 +38,8 @@ class Classifier(ClassifierInterface):
         for cnts in data:
             for cnt in cnts:
                 if cnt.any():
+                    cv2.imshow("changes x", cnt)
+                    cv2.waitKey(10) & 0XFF
                     cnt= imutils.resize(cnt, width=320)
                     x = self.detect(cnt)
 

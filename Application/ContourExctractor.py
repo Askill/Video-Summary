@@ -60,7 +60,7 @@ class ContourExtractor:
                 self.computeMovingAverage(tmpData)
                 pool.map(self.getContours, tmpData)
                 #for data in tmpData:
-                    #self.getContours(data)
+                #    self.getContours(data)
                 frameCount = tmpData[-1][0]
 
         videoReader.thread.join()

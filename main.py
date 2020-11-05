@@ -14,9 +14,9 @@ def main():
     start = time.time()
     config = Config()
 
-    config["inputPath"] = os.path.join(os.path.dirname(__file__), "generate test footage/3.mp4")
-    config["importPath"] = os.path.join(os.path.dirname(__file__), "output/short.txt")
-    config["outputPath"]  = os.path.join(os.path.dirname(__file__), "output/short.mp4")
+    config["inputPath"] = os.path.join(os.path.dirname(__file__), "generate test footage/Merica-1.m4v")
+    #config["importPath"] = os.path.join(os.path.dirname(__file__), "output/short.txt")
+    config["outputPath"]  = os.path.join(os.path.dirname(__file__), "output/shor.mp4")
 
     vr = VideoReader(config)
     config["w"], config["h"] = vr.getWH()
@@ -34,7 +34,7 @@ def main():
     layerManager = LayerManager(config, layers)
     layerManager.cleanLayers()
 
-    layerManager.tagLayers()
+    #layerManager.tagLayers()
     layers = layerManager.layers
     exporter = Exporter(config)
     exporter.export(layers, raw=False)

@@ -25,6 +25,7 @@ class LayerManager:
 
 
     def cleanLayers(self):
+        print("'Cleaning' Layers")
         self.freeMin()
         self.sortLayers()            
         self.cleanLayers2()
@@ -69,9 +70,10 @@ class LayerManager:
 
     def tagLayers(self):
         '''Use classifieres the tag all Layers, by reading the contour content from the original video, then applying the classifier'''
+        print("Tagging Layers")
         exporter = Exporter(self.config)
         start = time.time()
-        for i, layer in enumerate(self.layers):
+        for i, layer in enumerate(self.layers[20:]):
             print(f"{round(i/len(self.layers)*100,2)} {round((time.time() - start), 2)}")
             start = time.time()
             if len(layer.bounds[0]) == 0:

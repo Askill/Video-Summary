@@ -25,7 +25,7 @@ class LayerFactory:
     def extractLayers(self, data = None):
         '''Bundle given contours together into Layer Objects'''
         if self.data is None:
-            if data is None:
+            if data is None or len(data) == 0 :
                 print("LayerFactory data was none")
                 return None
             else:

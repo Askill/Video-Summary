@@ -1,7 +1,7 @@
 
 class Config:
     c = {
-        "min_area" : 500,
+        "min_area" : 100,
         "max_area" : 40000,
         "threashold" : 5,
         "resizeWidth" : 512,
@@ -12,7 +12,7 @@ class Config:
         "tolerance": 20,
         "maxLength": None,
         "ttolerance": 60,
-        "videoBufferLength": 16,
+        "videoBufferLength": 500,
         "noiseThreashold": 0.3,
         "noiseSensitivity": 3/4,
         "LayersPerContour": 5,
