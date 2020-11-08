@@ -14,22 +14,26 @@ def main():
     start = time.time()
     config = Config()
 
-    config["inputPath"] = os.path.join(os.path.dirname(__file__), "generate test footage/Merica-1.m4v")
-    #config["importPath"] = os.path.join(os.path.dirname(__file__), "output/short.txt")
-    config["outputPath"]  = os.path.join(os.path.dirname(__file__), "output/shor.mp4")
+    fileName = "3.mp4"
+    outputPath = os.path.join(os.path.dirname(__file__), "output")
+    dirName = os.path.join(os.path.dirname(__file__), "generate test footage")
 
-    vr = VideoReader(config)
-    config["w"], config["h"] = vr.getWH()
+    config["inputPath"] = os.path.join(dirName, fileName)
+    config["outputPath"]  = os.path.join(outputPath, fileName)
 
-    if config["importPath"] is None:
+    config["importPath"] = os.path.join(outputPath, fileName.split(".")[0] + ".txt")
+
+    config["w"], config["h"] = VideoReader(config).getWH()
+
+    if not os.path.exists(config["importPath"]):
         contours = ContourExtractor(config).extractContours()
         print("Time consumed extracting: ", time.time() - start)
         layerFactory = LayerFactory(config)
-        
         layers = layerFactory.extractLayers(contours)
-
     else:
-        layers = Importer(config).importRawData()
+        layers, contours = Importer(config).importRawData()
+        #layerFactory = LayerFactory(config)
+        #layers = layerFactory.extractLayers(contours)
 
     layerManager = LayerManager(config, layers)
     layerManager.cleanLayers()
@@ -37,7 +41,8 @@ def main():
     #layerManager.tagLayers()
     layers = layerManager.layers
     exporter = Exporter(config)
-    exporter.export(layers, raw=False)
+    print(f"Exporting {len(contours)} Contours and {len(layers)} Layers")
+    exporter.export(layers, contours, raw=True, overlayed=False)
     
     print("Total time: ", time.time() - start)
 

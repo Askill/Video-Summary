@@ -45,9 +45,9 @@ class LayerFactory:
                     print(f"{int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction")
 
                 tmp = [[frameNumber, contour] for contour in contours]
-                pool.map(self.getLayers, tmp)
-                #for x in tmp:
-                    #self.getLayers(x)
+                #pool.map(self.getLayers, tmp)
+                for x in tmp:
+                    self.getLayers(x)
 
         return self.layers
 
@@ -59,20 +59,28 @@ class LayerFactory:
         foundLayer = 0
 
         for i in range(0, len(self.layers)):
+            if foundLayer >= self.config["LayersPerContour"]:
+                break
+            
             if i in self.oldLayerIDs:
                 continue
             if frameNumber - self.layers[i].lastFrame > self.ttolerance:
                 self.oldLayerIDs.append(i)
                 continue
+            
+            lastXframes = 3
+            if len(self.layers[i].bounds) < lastXframes:
+                lastXframes = len(self.layers[i].bounds)
+            lastBounds = [bound for bounds in self.layers[i].bounds[-lastXframes:] for bound in bounds]
 
-            for bounds in self.layers[i].bounds[-1]:
-                if bounds is None or foundLayer >= self.config["LayersPerContour"]:
+            for bounds in lastBounds:
+                if bounds is None:
                     break
                 (x2,y2,w2,h2) = bounds
                 if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
                     self.layers[i].add(frameNumber, (x,y,w,h))
                     foundLayer += 1
-                    #break
+                    break
 
         if foundLayer == 0:
             self.layers.append(Layer(frameNumber, (x,y,w,h), self.config))

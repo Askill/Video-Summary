@@ -16,17 +16,13 @@ class Exporter:
         self.config = config
         print("Exporter initiated")
 
-    def export(self, layers, raw = True, layered = False, overlayed = True):
-        
+    def export(self, layers, contours, raw = True, overlayed = True):
         if raw:
-            self.exportRawData(layers)
-        if layered and overlayed:
-            print("Layered and Individual are mutually exclusive, individual was choosen automatically")
-            overlayed = False
-        if layered and not overlayed:
-            self.exportLayers(layers)
-        if overlayed and not layered:
+            self.exportRawData(layers, contours)
+        if overlayed:
             self.exportOverlayed(layers)
+        else:
+            self.exportLayers(layers)
     
 
     def exportLayers(self,  layers):
@@ -37,7 +33,6 @@ class Exporter:
         maxLength = self.getMaxLengthOfLayers(layers)
         underlay = cv2.VideoCapture(self.footagePath).read()[1]
         underlay = cv2.cvtColor(underlay, cv2.COLOR_BGR2RGB)
-        frames = [underlay]*maxLength
         exportFrame = 0
 
         self.fps = videoReader.getFPS()
@@ -52,7 +47,7 @@ class Exporter:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
             frame2 = np.copy(underlay)
-            for layer in layers:
+            for xi, layer in enumerate(layers):
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
                     for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
                         if x is None:
@@ -64,7 +59,7 @@ class Exporter:
                         h = int(h * factor)
                         
                         frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
-                        cv2.putText(frame2,  str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
+                        cv2.putText(frame2, str(xi) + "  " + str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
             writer.append_data(frame2)
 
 
@@ -119,9 +114,10 @@ class Exporter:
 
         writer.close()
 
-    def exportRawData(self, layers):
-        with open(self.outputPath.split(".")[-2] + ".txt", "wb+") as file:
-            pickle.dump(layers, file)
+    def exportRawData(self, layers, contours):
+        with open(self.config["importPath"], "wb+") as file:
+            pickle.dump((layers, contours), file)
+            
 
 
     def getMaxLengthOfLayers(self, layers):

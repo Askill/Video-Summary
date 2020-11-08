@@ -37,14 +37,12 @@ class Layer:
 
     def add(self, frameNumber, bound):
         '''Adds a bound'''
-        if not self.startFrame + len(self.bounds) < frameNumber:
-            if len(self.bounds[self.startFrame - frameNumber]) >= 1:
-                self.bounds[self.startFrame - frameNumber].append(bound)
+        if self.startFrame + len(self.bounds) - 1 > frameNumber:
+            if len(self.bounds[frameNumber - self.startFrame]) >= 1:
+                self.bounds[frameNumber - self.startFrame].append(bound)
         else:
             self.lastFrame = frameNumber
             self.bounds.append([bound])
-
-        self.getLength()
 
     def getLength(self):
         return len(self)
@@ -52,25 +50,6 @@ class Layer:
     def __len__(self):
         self.length = len(self.bounds)
         return self.length
-    
-    def fill(self, inputPath, resizeWidth):
-        '''deprecated
-        
-        Fills the data[] array by iterateing over the bounds'''
-        
-        cap = cv2.VideoCapture(inputPath) 
-        self.data = [None]*len(self.bounds)
-        i = 0
-        cap.set(1, self.startFrame)
-        while i < len(self.bounds):
-            ret, frame = cap.read() 
-            
-            if ret:
-                frame = imutils.resize(frame, width=resizeWidth)
-                (x, y, w, h) = self.bounds[i]
-                self.data[i] = frame[y:y+h, x:x+w]
-            i+=1
-        cap.release()
 
     def clusterDelete(self):
         '''Uses a cluster analysis to remove contours which are not the result of movement'''
@@ -146,13 +125,14 @@ class Layer:
         newContours = [[]]
         for i, dis in enumerate(dists):
             # copy contours which are spread out, delete rest by not copying them 
-            if dis > noiseThreashold:
-                for j in classed[i]:
-                    x, y = mapping[j]
-                    while x >= len(newContours):
-                        newContours.append([])
-                    while y > len(newContours[x]):
-                        newContours[x].append((None, None, None, None))
+            
+            for j in classed[i]:
+                x, y = mapping[j]
+                while x >= len(newContours):
+                    newContours.append([])
+                while y > len(newContours[x]):
+                    newContours[x].append((None, None, None, None))
+                if dis > noiseThreashold:
                     newContours[x].append(org[x][y])      
         
         self.bounds = newContours

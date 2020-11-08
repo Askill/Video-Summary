@@ -5,6 +5,7 @@ class Importer:
         self.path = config["importPath"]
 
     def importRawData(self):
+        print("Loading previous results")
         with open(self.path, "rb") as file:
-            layers = pickle.load(file)
-        return layers
+            layers, contours = pickle.load(file)
+        return (layers, contours)

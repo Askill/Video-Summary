@@ -28,7 +28,7 @@ class LayerManager:
         print("'Cleaning' Layers")
         self.freeMin()
         self.sortLayers()            
-        self.cleanLayers2()
+        #self.cleanLayers2()
         self.freeMax()
 
     def removeStaticLayers(self):
@@ -107,5 +107,8 @@ class LayerManager:
         self.layers.sort(key = lambda c:c.startFrame)
 
     def cleanLayers2(self):
+        #with ThreadPool(16) as pool:
+        #    pool.map(self.getContours, tmpData)
+
         for layer in self.layers:
             layer.clusterDelete()

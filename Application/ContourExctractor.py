@@ -109,7 +109,9 @@ class ContourExtractor:
 
     def computeMovingAverage(self, frames):
         avg = []
-        averageFrames = self.config["averageFrames"]
+        averageFrames = self.config["avgNum"]
+
+        nth = int(averageFrames/3) # only take /x  x frames to average
         if frames[0][0] < averageFrames:
             frame = frames[0][1]
             frame = self.prepareFrame(frame)
@@ -123,7 +125,7 @@ class ContourExtractor:
         if self.lastFrames is not None:
             frames = self.lastFrames + frames 
 
-        tmp = [[j, frames, averageFrames]for j in range(averageFrames, len(frames))]
+        tmp = [[j, frames, averageFrames] for j in range(averageFrames, len(frames))]
         with ThreadPool(16) as pool:
             pool.map(self.averageDaFrames, tmp)
 
@@ -136,6 +138,6 @@ class ContourExtractor:
         frame = self.prepareFrame(frame)
         
         avg = frame/averageFrames
-        for jj in reversed(range(averageFrames-1)):
+        for jj in range(0,averageFrames-1):
             avg += self.prepareFrame(frames[j-jj][1])/averageFrames
         self.averages[frameNumber] = np.array(np.round(avg), dtype=np.uint8)
