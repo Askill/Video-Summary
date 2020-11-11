@@ -51,7 +51,7 @@ class Exporter:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
                     for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
                         if x is None:
-                            break
+                            continue
                         factor = videoReader.w / self.resizeWidth
                         x = int(x * factor)
                         y = int(y * factor)
