@@ -24,12 +24,17 @@ class LayerManager:
 
 
 
-    def cleanLayers(self):
+    def transformLayers(self):
         print("'Cleaning' Layers")
         self.freeMin()
         self.sortLayers()            
         #self.cleanLayers2()
         self.freeMax()
+        self.calcStats()
+
+    def calcStats(self):
+        for layer in self.layers:
+            layer.calcStats()
 
     def removeStaticLayers(self):
         '''Removes Layers with little to no movement'''

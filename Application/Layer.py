@@ -32,6 +32,8 @@ class Layer:
         self.config = config
         self.data = []
         self.bounds = []
+        self.stats = dict()
+
         self.bounds.append([data])
         #print("Layer constructed")
 
@@ -43,6 +45,37 @@ class Layer:
         else:
             self.lastFrame = frameNumber
             self.bounds.append([bound])
+
+    def calcStats(self):
+        middles = []
+        for i, bounds in enumerate(self.bounds):
+            for j, bound in enumerate(bounds):
+                if None in bound:
+                    continue
+                x = (bound[0] + bound[2]/2) 
+                y = (bound[1] + bound[3]/2) 
+                middles.append([x,y])
+        
+        avgx = 0 
+        avgy = 0
+        for i in range(1, len(middles), 2):
+            avgx += float(middles[i][0]-middles[i-1][0])/len(middles)
+            avgy += float(middles[i][1]-middles[i-1][1])/len(middles)
+        self.stats = dict()
+        self.stats["avg"] = [round(avgx,2), round(avgy, 2)]
+
+        x=0
+        y=0
+        for i in range(0, len(middles)):
+            x += (float(middles[i][0]) - avgx)**2
+            y += (float(middles[i][1]) - avgy)**2
+
+        x /= (len(middles)-1) 
+        y /= (len(middles)-1)
+
+        self.stats["var"] = [round(x,2),round(y, 2)]
+        self.stats["dev"] = [round(x**(1/2), 2), round(y**(1/2),2)]
+        
 
     def getLength(self):
         return len(self)
@@ -78,25 +111,17 @@ class Layer:
         kmeans = None
 
         # the loop isn't nessecary (?) if the number of clusters is known, since it isn't the loop tries to optimize
-        while True:
-            kmeans = KMeans(init="random", n_clusters=clusterCount, n_init=10, max_iter=300, random_state=42)
-            kmeans.fit(mapped)
-            labels = list(kmeans.labels_)
 
-            if kmeans.n_features_in_ < clusterCount:
-                break
+        kmeans = KMeans(init="random", n_clusters=clusterCount, n_init=10, max_iter=300, random_state=42)
+        kmeans.fit(mapped)
+        labels = list(kmeans.labels_)
 
-            maxm = 0
-            for x in set(labels):
-                y = labels.count(x)
-                if y > maxm:
-                    maxm = y
+        maxm = 0
+        for x in set(labels):
+            y = labels.count(x)
+            if y > maxm:
+                maxm = y
 
-            if maxm > len(mapped)*(noiseSensitivity) and clusterCount+1<=len(kmeans.cluster_centers_):
-                clusterCount += 1
-            else: 
-                centers = kmeans.cluster_centers_
-                break
 
         # transformes the labels array
         # new array:

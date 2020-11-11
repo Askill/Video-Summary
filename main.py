@@ -36,7 +36,7 @@ def main():
         #layers = layerFactory.extractLayers(contours)
 
     layerManager = LayerManager(config, layers)
-    layerManager.cleanLayers()
+    layerManager.transformLayers()
 
     #layerManager.tagLayers()
     layers = layerManager.layers
@@ -45,6 +45,7 @@ def main():
     exporter.export(layers, contours, raw=True, overlayed=False)
     
     print("Total time: ", time.time() - start)
+    exit(0)
 
 if __name__ == "__main__":
     main()

@@ -41,8 +41,8 @@ class Exporter:
 
         start = time.time()
         for i, layer in enumerate(layers):
-            print(f"{round(i/len(layers)*100,2)} {round((time.time() - start), 2)}")
-            start = time.time()
+            print(f"{i}/{len(layers)} {round(i/len(layers)*100,2)}% {round((time.time() - start)/(i+1), 2)}")
+            
             if len(layer.bounds[0]) == 0:
                 continue
             
@@ -71,11 +71,12 @@ class Exporter:
                     
                     frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
                     cv2.putText(frame2, str(i) + "  " + str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
+                cv2.putText(frame2, str(layer.stats["avg"]) + "  " + str(layer.stats["var"]) + "  " + str(layer.stats["dev"]), (int(500), int(500)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255), 2)
                 writer.append_data(frame2)
 
-
             videoReader.thread.join()
-
+        writer.close()
+        
 
     def exportOverlayed(self, layers):
 
