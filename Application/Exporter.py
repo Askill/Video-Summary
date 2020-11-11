@@ -5,6 +5,7 @@ from Application.Layer import Layer
 import cv2
 from Application.VideoReader import VideoReader
 import pickle
+import time 
 
 class Exporter:
     fps = 30
@@ -25,7 +26,7 @@ class Exporter:
             self.exportLayers(layers)
     
 
-    def exportLayers(self,  layers):
+    def exportLayers(self, layers):
 
         listOfFrames = self.makeListOfFrames(layers)
         videoReader = VideoReader(self.config, listOfFrames)
@@ -37,33 +38,43 @@ class Exporter:
 
         self.fps = videoReader.getFPS()
         writer = imageio.get_writer(self.outputPath, fps=self.fps)
-        while not videoReader.videoEnded():
-            frameCount, frame = videoReader.pop()
-            if frameCount % (60*self.fps) == 0:
-                print("Minutes processed: ", frameCount/(60*self.fps))
-            if frame is None:
-                print("ContourExtractor: frame was None")
+
+        start = time.time()
+        for i, layer in enumerate(layers):
+            print(f"{round(i/len(layers)*100,2)} {round((time.time() - start), 2)}")
+            start = time.time()
+            if len(layer.bounds[0]) == 0:
                 continue
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
-            frame2 = np.copy(underlay)
-            for xi, layer in enumerate(layers):
-                if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
-                    for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
-                        if x is None:
-                            continue
-                        factor = videoReader.w / self.resizeWidth
-                        x = int(x * factor)
-                        y = int(y * factor)
-                        w = int(w * factor)
-                        h = int(h * factor)
-                        
-                        frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
-                        cv2.putText(frame2, str(xi) + "  " + str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
-            writer.append_data(frame2)
+            listOfFrames = self.makeListOfFrames([layer])
+
+            videoReader = VideoReader(self.config, listOfFrames)
+            videoReader.fillBuffer()
+
+            while not videoReader.videoEnded():
+                frameCount, frame = videoReader.pop()
+
+                if frameCount % (60*self.fps) == 0:
+                    print("Minutes processed: ", frameCount/(60*self.fps))
+
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            
+                frame2 = np.copy(underlay)
+                for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                    if x is None:
+                        continue
+                    factor = videoReader.w / self.resizeWidth
+                    x = int(x * factor)
+                    y = int(y * factor)
+                    w = int(w * factor)
+                    h = int(h * factor)
+                    
+                    frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
+                    cv2.putText(frame2, str(i) + "  " + str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
+                writer.append_data(frame2)
 
 
-        videoReader.thread.join()
+            videoReader.thread.join()
 
 
     def exportOverlayed(self, layers):
