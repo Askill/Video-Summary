@@ -41,7 +41,7 @@ class Exporter:
 
         start = time.time()
         for i, layer in enumerate(layers):
-            print(f"{i}/{len(layers)} {round(i/len(layers)*100,2)}% {round((time.time() - start)/(i+1), 2)}")
+            print(f"\r {i}/{len(layers)} {round(i/len(layers)*100,2)}% {round((time.time() - start)/(i+1), 2)}", end='\r')
             
             if len(layer.bounds[0]) == 0:
                 continue

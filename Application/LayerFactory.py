@@ -43,7 +43,7 @@ class LayerFactory:
             for frameNumber in sorted(data.keys()):
                 contours = data[frameNumber]
                 if frameNumber%5000 == 0:
-                    print(f"{int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction")
+                    print("\r" + f" {int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction", end='\r')
 
                 tmp = [[frameNumber, contour] for contour in contours]
                 #pool.map(self.getLayers, tmp)
@@ -96,7 +96,7 @@ class LayerFactory:
         
         layers = self.sortLayers(foundLayerIDs)
         layer1 = layers[0]
-        for layerID in range(1, len(layers)):
+        for layerID in range(0, len(layers)):
             layer2 = layers[layerID]
             layer1 = self.merge2Layers(layer1, layer2)
         
