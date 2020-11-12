@@ -62,7 +62,7 @@ class Layer:
             avgx += float(middles[i][0]-middles[i-1][0])/len(middles)
             avgy += float(middles[i][1]-middles[i-1][1])/len(middles)
         self.stats = dict()
-        self.stats["avg"] = [round(avgx,2), round(avgy, 2)]
+        self.stats["avg"] = round((avgx**2 + avgy**2)**(1/2),2) 
 
         x=0
         y=0
@@ -73,8 +73,8 @@ class Layer:
         x /= (len(middles)-1) 
         y /= (len(middles)-1)
 
-        self.stats["var"] = [round(x,2),round(y, 2)]
-        self.stats["dev"] = [round(x**(1/2), 2), round(y**(1/2),2)]
+        self.stats["var"] = round((x**2 + y**2)**(1/2),2)
+        self.stats["dev"] = round((x + y)**(1/2), 2)
         
 
     def getLength(self):

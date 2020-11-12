@@ -32,8 +32,8 @@ def main():
         layers = layerFactory.extractLayers(contours)
     else:
         layers, contours = Importer(config).importRawData()
-        #layerFactory = LayerFactory(config)
-        #layers = layerFactory.extractLayers(contours)
+        layerFactory = LayerFactory(config)
+        layers = layerFactory.extractLayers(contours)
 
     layerManager = LayerManager(config, layers)
     layerManager.transformLayers()

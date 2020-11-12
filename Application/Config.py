@@ -15,7 +15,7 @@ class Config:
         "videoBufferLength": 500,
         "noiseThreashold": 0.25,
         "noiseSensitivity": 3/4,
-        "LayersPerContour": 2,
+        "LayersPerContour": 20,
         "avgNum":10
         }
 
