@@ -74,7 +74,7 @@ class ContourExtractor:
         firstFrame = self.averages.pop(frameCount, None)
        
         if frameCount % (60*30) == 0:
-            print(f"{frameCount/(60*30)} Minutes processed in {round((time.time() - self.start), 2)} each")
+            print(f" \r {frameCount/(60*30)} Minutes processed in {round((time.time() - self.start), 2)} each", end='\r')
             self.start = time.time()
 
         gray = self.prepareFrame(frame)

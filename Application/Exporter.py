@@ -41,9 +41,11 @@ class Exporter:
 
         start = time.time()
         for i, layer in enumerate(layers):
-            print(f"\r {i}/{len(layers)} {round(i/len(layers)*100,2)}% {round((time.time() - start)/(i+1), 2)}", end='\r')
+            print(f"\r {i}/{len(layers)} {round(i/len(layers)*100,2)}% {round((time.time() - start), 2)}s", end='\r')
             
             if len(layer.bounds[0]) == 0:
+                continue
+            if layer.stats["dev"] < 5:
                 continue
             
             listOfFrames = self.makeListOfFrames([layer])
@@ -75,6 +77,7 @@ class Exporter:
                 writer.append_data(frame2)
 
             videoReader.thread.join()
+            videoReader.vc.release()
         writer.close()
         
 
@@ -93,7 +96,7 @@ class Exporter:
         while not videoReader.videoEnded():
             frameCount, frame = videoReader.pop()
             if frameCount % (60*self.fps) == 0:
-                print("Minutes processed: ", frameCount/(60*self.fps))
+                print("Minutes processed: ", frameCount/(60*self.fps), end="\r")
             if frame is None:
                 print("ContourExtractor: frame was None")
                 continue
@@ -117,6 +120,7 @@ class Exporter:
                         cv2.putText(frames[frameCount - layer.startFrame],  str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
 
         videoReader.thread.join()
+        videoReader.vc.release()
 
         self.fps = videoReader.getFPS()
         fps = self.fps

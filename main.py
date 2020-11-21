@@ -14,7 +14,7 @@ def main():
     start = time.time()
     config = Config()
 
-    fileName = "3.mp4"
+    fileName = "x23.mp4"
     outputPath = os.path.join(os.path.dirname(__file__), "output")
     dirName = os.path.join(os.path.dirname(__file__), "generate test footage")
 
@@ -42,7 +42,7 @@ def main():
     layers = layerManager.layers
     exporter = Exporter(config)
     print(f"Exporting {len(contours)} Contours and {len(layers)} Layers")
-    exporter.export(layers, contours, raw=True, overlayed=False)
+    exporter.export(layers, contours, raw=True, overlayed=True)
     
     print("Total time: ", time.time() - start)
     exit(0)

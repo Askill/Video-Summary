@@ -43,7 +43,7 @@ class LayerFactory:
             for frameNumber in sorted(data.keys()):
                 contours = data[frameNumber]
                 if frameNumber%5000 == 0:
-                    print("\r" + f" {int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction", end='\r')
+                    print(f" {int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction", end='\r')
 
                 tmp = [[frameNumber, contour] for contour in contours]
                 #pool.map(self.getLayers, tmp)
@@ -71,12 +71,12 @@ class LayerFactory:
                 self.oldLayerIDs.append(i)
                 continue
             
-            lastXframes = 3
+            lastXframes = 5
             if len(self.layers[i].bounds) < lastXframes:
                 lastXframes = len(self.layers[i].bounds)
             lastBounds = [bound for bounds in self.layers[i].bounds[-lastXframes:] for bound in bounds]
 
-            for bounds in lastBounds:
+            for j, bounds in enumerate(lastBounds):
                 if bounds is None:
                     break
                 (x2,y2,w2,h2) = bounds

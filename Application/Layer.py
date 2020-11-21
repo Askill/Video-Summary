@@ -38,7 +38,7 @@ class Layer:
         #print("Layer constructed")
 
     def add(self, frameNumber, bound):
-        '''Adds a bound'''
+        '''Adds a bound to the Layer at the layer index which corresponds to the given framenumber'''
         if self.startFrame + len(self.bounds) - 1 > frameNumber:
             if len(self.bounds[frameNumber - self.startFrame]) >= 1:
                 self.bounds[frameNumber - self.startFrame].append(bound)
@@ -56,25 +56,20 @@ class Layer:
                 y = (bound[1] + bound[3]/2) 
                 middles.append([x,y])
         
-        avgx = 0 
-        avgy = 0
+        avg = 0 
         for i in range(1, len(middles), 2):
-            avgx += float(middles[i][0]-middles[i-1][0])/len(middles)
-            avgy += float(middles[i][1]-middles[i-1][1])/len(middles)
+            avg += (((float(middles[i][0]-middles[i-1][0])/len(middles))**2 + float(middles[i][1]-middles[i-1][1])/len(middles))**2)**(1/2)
         self.stats = dict()
-        self.stats["avg"] = round((avgx**2 + avgy**2)**(1/2),2) 
+        self.stats["avg"] = round(avg,2) 
 
         x=0
-        y=0
-        for i in range(0, len(middles)):
-            x += (float(middles[i][0]) - avgx)**2
-            y += (float(middles[i][1]) - avgy)**2
+        for i in range(1, len(middles), 2):
+            x += (((((float(middles[i][0]-middles[i-1][0])/len(middles))**2 + float(middles[i][1]-middles[i-1][1])/len(middles))**2)**(1/2)) - avg)**2
 
         x /= (len(middles)-1) 
-        y /= (len(middles)-1)
 
-        self.stats["var"] = round((x**2 + y**2)**(1/2),2)
-        self.stats["dev"] = round((x + y)**(1/2), 2)
+        self.stats["var"] = round(x,2)
+        self.stats["dev"] = round((x)**(1/2), 2)
         
 
     def getLength(self):
@@ -92,7 +87,6 @@ class Layer:
         mapped = []
         mapping = []
         clusterCount = 1
-        noiseSensitivity = self.config["noiseSensitivity"] 
         noiseThreashold = self.config["noiseThreashold"]
 
         # calculates the middle of each contour in the 2d bounds[] and saves it in 1d list
