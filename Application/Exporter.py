@@ -104,7 +104,10 @@ class Exporter:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
-                    for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                    for i in range(0, len(layer.bounds[frameCount - layer.startFrame])):
+                        (x, y, w, h) = layer.bounds[frameCount - layer.startFrame][i]
+                        mask = layer.masks[frameCount - layer.startFrame][i]
+                        
                         if x is None:
                             break
                         factor = videoReader.w / self.resizeWidth
@@ -112,11 +115,13 @@ class Exporter:
                         y = int(y * factor)
                         w = int(w * factor)
                         h = int(h * factor)
+                        mask = imutils.resize(mask, width=w, height=h+1)*255
+                        mask = np.resize(mask, (h,w))
                         # if exportFrame as index instead of frameCount - layer.startFrame  then we have layer after layer
                         frame2 = frames[frameCount - layer.startFrame]
-                        frame2[y:y+h, x:x+w] = frame2[y:y+h, x:x+w]/2 + frame[y:y+h, x:x+w]/2
+                        frame2[y:y+h, x:x+w] =  cv2.bitwise_and(frame2[y:y+h, x:x+w],frame2[y:y+h, x:x+w], mask)# + frame2[y:y+h, x:x+w]/2
                         
-                        frames[frameCount - layer.startFrame] = np.copy(frame2)
+                        frames[frameCount - layer.startFrame] = np.copy(frame2) 
                         cv2.putText(frames[frameCount - layer.startFrame],  str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
 
         videoReader.thread.join()
@@ -132,7 +137,7 @@ class Exporter:
 
     def exportRawData(self, layers, contours):
         with open(self.config["importPath"], "wb+") as file:
-            pickle.dump((layers, contours), file)
+            pickle.dump((layers, contours, masks), file)
             
 
 

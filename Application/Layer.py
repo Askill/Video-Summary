@@ -16,7 +16,7 @@ class Layer:
     lastFrame = None
     length = None
 
-    def __init__(self, startFrame, data, config):
+    def __init__(self, startFrame, data, mask, config):
         '''returns a Layer object
         
         Layers are collections of contours with a StartFrame, 
@@ -32,21 +32,26 @@ class Layer:
         self.config = config
         self.data = []
         self.bounds = []
+        self.masks = []
         self.stats = dict()
 
         self.bounds.append([data])
+        self.masks.append([mask])
         #print("Layer constructed")
 
-    def add(self, frameNumber, bound):
+    def add(self, frameNumber, bound, mask):
         '''Adds a bound to the Layer at the layer index which corresponds to the given framenumber'''
         if self.startFrame + len(self.bounds) - 1 > frameNumber:
             if len(self.bounds[frameNumber - self.startFrame]) >= 1:
                 self.bounds[frameNumber - self.startFrame].append(bound)
+                self.masks[frameNumber - self.startFrame].append(mask)
         else:
             self.lastFrame = frameNumber
             self.bounds.append([bound])
+            self.masks.append([mask])
 
     def calcStats(self):
+        '''calculates average distance, variation and deviation of layer movement'''
         middles = []
         for i, bounds in enumerate(self.bounds):
             for j, bound in enumerate(bounds):
@@ -78,93 +83,4 @@ class Layer:
     def __len__(self):
         self.length = len(self.bounds)
         return self.length
-
-    def clusterDelete(self):
-        '''Uses a cluster analysis to remove contours which are not the result of movement'''
-        org = self.bounds
-        if len(org) == 1:
-            return
-        mapped = []
-        mapping = []
-        clusterCount = 1
-        noiseThreashold = self.config["noiseThreashold"]
-
-        # calculates the middle of each contour in the 2d bounds[] and saves it in 1d list
-        # and saves the 2d indexes in a mapping array
-        for i, bounds in enumerate(org):
-            for j, bound in enumerate(bounds):
-                x = (bound[0] + bound[2]/2) / self.config["w"]
-                y = (bound[1] + bound[3]/2) / self.config["w"]
-
-                mapped.append(list((x,y)))
-                mapping.append([i,j])
-
-        mapped = np.array(mapped).astype(np.float16)
-        labels = []
-        centers = []
-        kmeans = None
-
-        # the loop isn't nessecary (?) if the number of clusters is known, since it isn't the loop tries to optimize
-
-        kmeans = KMeans(init="random", n_clusters=clusterCount, n_init=10, max_iter=300, random_state=42)
-        kmeans.fit(mapped)
-        labels = list(kmeans.labels_)
-
-        maxm = 0
-        for x in set(labels):
-            y = labels.count(x)
-            if y > maxm:
-                maxm = y
-
-
-        # transformes the labels array
-        # new array:
-        # the index is the cluster id, the array is the id of the contour 
-        # [
-        # [1,2,3]
-        # [3,4,5]
-        # [6,7,8,9]   
-        # ]
-        classed = [[]]
-        for i, x in enumerate(list(labels)):
-            while len(classed) <= x:
-                classed.append([])
-            classed[x].append(i)
-
-        # calculates the euclidean distance (without the sqrt) of each point in a cluster to the cluster center
-        dists = []
-        for num, cen in enumerate(centers):
-            dist = 0
-            for i in classed[num]:
-                dist += (mapped[i][0]-cen[0])**2 + (mapped[i][1]-cen[1])**2
-            dist/=len(classed[num])
-            dists.append(dist*1000)
-
-        # copy all contours of the clusters with more movement than the threshold
-        newContours = [[]]
-        for i, dis in enumerate(dists):
-            # copy contours which are spread out, delete rest by not copying them 
-            
-            for j in classed[i]:
-                x, y = mapping[j]
-                while x >= len(newContours):
-                    newContours.append([])
-                while y > len(newContours[x]):
-                    newContours[x].append((None, None, None, None))
-                if dis > noiseThreashold:
-                    newContours[x].append(org[x][y])      
-        
-        self.bounds = newContours
-        #print(f"{clusterCount} clusters identified {dists}")
-
-        #fig, ax = plt.subplots()
-        #x=mapped[:,0]
-        #y=mapped[:,1]
-        
-        #ax.scatter(x, y, labels, s=10, cmap="rainbow")
-        #ax.grid(True)
-        #plt.show()
-
-        #print("done")
-
    

@@ -23,29 +23,28 @@ class LayerFactory:
         if data is not None:
             self.extractLayers(data)
 
-    def extractLayers(self, data = None):
+    def extractLayers(self, data, maskArr):
         '''Bundle given contours together into Layer Objects'''
-        if self.data is None:
-            if data is None or len(data) == 0 :
-                print("LayerFactory data was none")
-                return None
-            else:
-                self.data = data
 
         frameNumber = min(data)
         contours = data[frameNumber]
-        for contour in contours:
-            self.layers.append(Layer(frameNumber, contour, self.config))
+        masks = maskArr[frameNumber]
+
+        for contour, mask in zip(contours, masks):
+            mask = np.unpackbits(mask, axis=0)
+            self.layers.append(Layer(frameNumber, contour, mask, self.config))
   
         self.oldLayerIDs = []
         
         with ThreadPool(16) as pool:
             for frameNumber in sorted(data.keys()):
                 contours = data[frameNumber]
+                masks = maskArr[frameNumber]
+                masks = [np.unpackbits(mask, axis=0) for mask, contours in zip(masks, contours)]
                 if frameNumber%5000 == 0:
                     print(f" {int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction", end='\r')
 
-                tmp = [[frameNumber, contour] for contour in contours]
+                tmp = [[frameNumber, contour, mask] for contour, mask in zip(contours, masks)]
                 #pool.map(self.getLayers, tmp)
                 for x in tmp:
                     self.getLayers(x)
@@ -55,6 +54,7 @@ class LayerFactory:
     def getLayers(self, data):
         frameNumber = data[0]
         bounds = data[1]
+        mask = data[2]
         (x,y,w,h) = bounds
         tol = self.tolerance
         foundLayer = 0
@@ -81,13 +81,13 @@ class LayerFactory:
                     break
                 (x2,y2,w2,h2) = bounds
                 if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
-                    self.layers[i].add(frameNumber, (x,y,w,h))
+                    self.layers[i].add(frameNumber, (x,y,w,h), mask)
                     foundLayer += 1
                     foundLayerIDs.append(i)
                     break
 
         if foundLayer == 0:
-            self.layers.append(Layer(frameNumber, (x,y,w,h), self.config))
+            self.layers.append(Layer(frameNumber, (x,y,w,h), mask, self.config))
 
         if len(foundLayerIDs) > 1:
             self.mergeLayers(foundLayerIDs)
@@ -114,16 +114,23 @@ class LayerFactory:
         
         dSF = layer2.startFrame - layer1.startFrame
         l1bounds = copy.deepcopy(layer1.bounds)
+        l1masks = copy.deepcopy(layer1.masks)
 
         for i in range(len(layer2.bounds)):
             bounds = layer2.bounds[i]
+            masks = layer2.masks[i]
             while dSF + i >= len(l1bounds):
                 l1bounds.append([])
-            for bound in bounds:
+            while dSF + i >= len(l1masks):
+                l1masks.append([])
+
+            for bound, mask in zip(bounds, masks):
                 if bound not in l1bounds[dSF + i]: 
                     l1bounds[dSF + i].append(bound)
+                    l1masks[dSF + i].append(mask)
 
         layer1.bounds = l1bounds
+        layer1.masks = l1masks
         return layer1
 
 

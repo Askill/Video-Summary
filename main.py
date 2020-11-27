@@ -14,7 +14,7 @@ def main():
     start = time.time()
     config = Config()
 
-    fileName = "x23.mp4"
+    fileName = "3.mp4"
     outputPath = os.path.join(os.path.dirname(__file__), "output")
     dirName = os.path.join(os.path.dirname(__file__), "generate test footage")
 
@@ -26,14 +26,14 @@ def main():
     config["w"], config["h"] = VideoReader(config).getWH()
 
     if not os.path.exists(config["importPath"]):
-        contours = ContourExtractor(config).extractContours()
+        contours, masks = ContourExtractor(config).extractContours()
         print("Time consumed extracting: ", time.time() - start)
         layerFactory = LayerFactory(config)
-        layers = layerFactory.extractLayers(contours)
+        layers = layerFactory.extractLayers(contours, masks)
     else:
-        layers, contours = Importer(config).importRawData()
+        layers, contours, masks = Importer(config).importRawData()
         layerFactory = LayerFactory(config)
-        layers = layerFactory.extractLayers(contours)
+        layers = layerFactory.extractLayers(contours, masks)
 
     layerManager = LayerManager(config, layers)
     layerManager.transformLayers()

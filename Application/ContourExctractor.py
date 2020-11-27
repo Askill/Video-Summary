@@ -24,12 +24,17 @@ class ContourExtractor:
     #extracedContours = {frame_number: [(contour, (x,y,w,h)), ...], }
     # dict with frame numbers as keys and the contour bounds of every contour for that frame 
 
-    def getextractedContours(self):
+    def getExtractedContours(self):
         return self.extractedContours
+
+    def getExtractedMasks(self):
+        return self.extractedMasks
+
 
     def __init__(self, config):
         self.frameBuffer = Queue(16)
         self.extractedContours = dict()
+        self.extractedMasks = dict()
         self.min_area = config["min_area"]
         self.max_area = config["max_area"]
         self.threashold = config["threashold"]
@@ -64,7 +69,7 @@ class ContourExtractor:
                 frameCount = tmpData[-1][0]
 
         videoReader.thread.join()
-        return self.extractedContours
+        return self.extractedContours, self.extractedMasks
     
     def getContours(self, data):
         frameCount, frame = data
@@ -89,17 +94,21 @@ class ContourExtractor:
         cnts = imutils.grab_contours(cnts)
 
         contours = []
+        masks = []
         for c in cnts:
             ca = cv2.contourArea(c)
+            (x, y, w, h) = cv2.boundingRect(c)
+            #ca = (x+w)*(y+h)
             if ca < self.min_area or ca > self.max_area:
                 continue
-            (x, y, w, h) = cv2.boundingRect(c)
 
             contours.append((x, y, w, h))
-        
+            masks.append(np.packbits(np.copy(thresh[y:y+h,x:x+w]), axis=0))
+            
         if len(contours) != 0 and contours is not None: 
             # this should be thread safe
             self.extractedContours[frameCount] = contours
+            self.extractedMasks[frameCount] =  masks
 
     def prepareFrame(self, frame):
         frame = imutils.resize(frame, width=self.resizeWidth)
@@ -141,3 +150,4 @@ class ContourExtractor:
         for jj in range(0,averageFrames-1):
             avg += self.prepareFrame(frames[j-jj][1])/averageFrames
         self.averages[frameNumber] = np.array(np.round(avg), dtype=np.uint8)
+        #self.averages[frameNumber] = self.prepareFrame(frames[j-averageFrames - 1][1])
