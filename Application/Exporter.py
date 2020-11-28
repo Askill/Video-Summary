@@ -90,7 +90,9 @@ class Exporter:
         maxLength = self.getMaxLengthOfLayers(layers)
         underlay = cv2.VideoCapture(self.footagePath).read()[1]
         underlay = cv2.cvtColor(underlay, cv2.COLOR_BGR2RGB)
-        frames = [underlay]*maxLength
+        frames = []
+        for i in range(maxLength):
+            frames.append(np.copy(underlay))
         exportFrame = 0
 
         
@@ -106,6 +108,7 @@ class Exporter:
             for layer in layers:
                 if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
                     for i in range(0, len(layer.bounds[frameCount - layer.startFrame])):
+                        underlay1 = underlay
                         (x, y, w, h) = layer.bounds[frameCount - layer.startFrame][i]
                         mask = layer.masks[frameCount - layer.startFrame][i]
                         
@@ -120,14 +123,11 @@ class Exporter:
                         mask = np.resize(mask, (h,w))
                         
                         frame2 = frames[frameCount - layer.startFrame]
-                        #frame2[y:y+h, x:x+w] =  cv2.bitwise_or(frame2[y:y+h, x:x+w], frame2[y:y+h, x:x+w], mask=cv2.bitwise_not(mask)))
-                        #frame2[y:y+h, x:x+w] = np.zeros((h, w, 3))
-                        frame2[y:y+h, x:x+w] = np.copy(cv2.bitwise_and(underlay[y:y+h, x:x+w], underlay[y:y+h, x:x+w], mask=cv2.bitwise_not(mask)))
-                        frame2[y:y+h, x:x+w] = cv2.addWeighted(np.copy(frame2[y:y+h, x:x+w]),1, np.copy(cv2.bitwise_and(frame[y:y+h, x:x+w], frame[y:y+h, x:x+w], mask=mask)),.5,0)
-                        
+                        xx = np.copy(cv2.bitwise_and(underlay1[y:y+h, x:x+w], underlay1[y:y+h, x:x+w], mask=cv2.bitwise_not(mask)))
+                        frame2[y:y+h, x:x+w] = cv2.addWeighted(xx,1, np.copy(cv2.bitwise_and(frame[y:y+h, x:x+w], frame[y:y+h, x:x+w], mask=mask)),1,0)
                         frames[frameCount - layer.startFrame] = np.copy(frame2) 
-                        cv2.imshow("changes x", frame2)
-                        cv2.waitKey(10) & 0XFF
+                        #cv2.imshow("changes x", frame2)
+                        #cv2.waitKey(10) & 0XFF
                         cv2.putText(frames[frameCount - layer.startFrame],  str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
 
         videoReader.thread.join()
