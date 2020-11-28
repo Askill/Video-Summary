@@ -63,9 +63,9 @@ class ContourExtractor:
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
                 self.computeMovingAverage(tmpData)
-                pool.map(self.getContours, tmpData)
-                #for data in tmpData:
-                #    self.getContours(data)
+                #pool.map(self.getContours, tmpData)
+                for data in tmpData:
+                    self.getContours(data)
                 frameCount = tmpData[-1][0]
 
         videoReader.thread.join()
@@ -105,6 +105,8 @@ class ContourExtractor:
             contours.append((x, y, w, h))
             masks.append(np.packbits(np.copy(thresh[y:y+h,x:x+w]), axis=0))
             
+       
+            
         if len(contours) != 0 and contours is not None: 
             # this should be thread safe
             self.extractedContours[frameCount] = contours
@@ -113,7 +115,7 @@ class ContourExtractor:
     def prepareFrame(self, frame):
         frame = imutils.resize(frame, width=self.resizeWidth)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (5, 5), 0)
+        gray = cv2.GaussianBlur(gray, (3, 3), 0)
         return gray
 
     def computeMovingAverage(self, frames):

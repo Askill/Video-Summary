@@ -32,8 +32,8 @@ def main():
         layers = layerFactory.extractLayers(contours, masks)
     else:
         layers, contours, masks = Importer(config).importRawData()
-        layerFactory = LayerFactory(config)
-        layers = layerFactory.extractLayers(contours, masks)
+        #layerFactory = LayerFactory(config)
+        #layers = layerFactory.extractLayers(contours, masks)
 
     layerManager = LayerManager(config, layers)
     layerManager.transformLayers()
@@ -42,7 +42,7 @@ def main():
     layers = layerManager.layers
     exporter = Exporter(config)
     print(f"Exporting {len(contours)} Contours and {len(layers)} Layers")
-    exporter.export(layers, contours, raw=True, overlayed=True)
+    exporter.export(layers, contours, masks, raw=True, overlayed=True)
     
     print("Total time: ", time.time() - start)
     exit(0)

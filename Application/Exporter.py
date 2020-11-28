@@ -17,9 +17,9 @@ class Exporter:
         self.config = config
         print("Exporter initiated")
 
-    def export(self, layers, contours, raw = True, overlayed = True):
+    def export(self, layers, contours, masks, raw = True, overlayed = True):
         if raw:
-            self.exportRawData(layers, contours)
+            self.exportRawData(layers, contours, masks)
         if overlayed:
             self.exportOverlayed(layers)
         else:
@@ -72,6 +72,7 @@ class Exporter:
                     h = int(h * factor)
                     
                     frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
+
                     cv2.putText(frame2, str(i) + "  " + str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
                 cv2.putText(frame2, str(layer.stats["avg"]) + "  " + str(layer.stats["var"]) + "  " + str(layer.stats["dev"]), (int(500), int(500)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255), 2)
                 writer.append_data(frame2)
@@ -115,13 +116,18 @@ class Exporter:
                         y = int(y * factor)
                         w = int(w * factor)
                         h = int(h * factor)
-                        mask = imutils.resize(mask, width=w, height=h+1)*255
+                        mask = imutils.resize(mask, width=w, height=h+1)
                         mask = np.resize(mask, (h,w))
-                        # if exportFrame as index instead of frameCount - layer.startFrame  then we have layer after layer
+                        
                         frame2 = frames[frameCount - layer.startFrame]
-                        frame2[y:y+h, x:x+w] =  cv2.bitwise_and(frame2[y:y+h, x:x+w],frame2[y:y+h, x:x+w], mask)# + frame2[y:y+h, x:x+w]/2
+                        #frame2[y:y+h, x:x+w] =  cv2.bitwise_or(frame2[y:y+h, x:x+w], frame2[y:y+h, x:x+w], mask=cv2.bitwise_not(mask)))
+                        #frame2[y:y+h, x:x+w] = np.zeros((h, w, 3))
+                        frame2[y:y+h, x:x+w] = np.copy(cv2.bitwise_and(underlay[y:y+h, x:x+w], underlay[y:y+h, x:x+w], mask=cv2.bitwise_not(mask)))
+                        frame2[y:y+h, x:x+w] = cv2.addWeighted(np.copy(frame2[y:y+h, x:x+w]),1, np.copy(cv2.bitwise_and(frame[y:y+h, x:x+w], frame[y:y+h, x:x+w], mask=mask)),.5,0)
                         
                         frames[frameCount - layer.startFrame] = np.copy(frame2) 
+                        cv2.imshow("changes x", frame2)
+                        cv2.waitKey(10) & 0XFF
                         cv2.putText(frames[frameCount - layer.startFrame],  str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
 
         videoReader.thread.join()
@@ -135,7 +141,7 @@ class Exporter:
 
         writer.close()
 
-    def exportRawData(self, layers, contours):
+    def exportRawData(self, layers, contours, masks):
         with open(self.config["importPath"], "wb+") as file:
             pickle.dump((layers, contours, masks), file)
             
