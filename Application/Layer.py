@@ -2,13 +2,6 @@ import numpy as np
 import cv2
 import imutils
 
-from kneed import KneeLocator
-from sklearn.datasets import make_blobs
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-
 class Layer:
     #bounds = [[(x,y,w,h), ],]
 

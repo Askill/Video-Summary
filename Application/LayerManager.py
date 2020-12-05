@@ -7,6 +7,7 @@ from Application.Classifiers.Classifier import Classifier
 import cv2
 import numpy as np
 import time
+
 class LayerManager:
     def __init__(self, config, layers):
         self.data = {}
@@ -21,8 +22,6 @@ class LayerManager:
         self.classifier = Classifier()
         self.tags = []
         print("LayerManager constructed")
-
-
 
     def transformLayers(self):
         print("'Cleaning' Layers")

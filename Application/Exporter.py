@@ -119,11 +119,13 @@ class Exporter:
                         y = int(y * factor)
                         w = int(w * factor)
                         h = int(h * factor)
+                        
                         mask = imutils.resize(mask, width=w, height=h+1)
                         mask = np.resize(mask, (h,w))
-                        
+                        mask = cv2.erode(mask, None, iterations=10)
+                        mask *= 255
                         frame2 = frames[frameCount - layer.startFrame]
-                        xx = np.copy(cv2.bitwise_and(underlay1[y:y+h, x:x+w], underlay1[y:y+h, x:x+w], mask=cv2.bitwise_not(mask)))
+                        xx = np.copy(cv2.bitwise_and(frame2[y:y+h, x:x+w], frame2[y:y+h, x:x+w], mask=cv2.bitwise_not(mask)))
                         frame2[y:y+h, x:x+w] = cv2.addWeighted(xx,1, np.copy(cv2.bitwise_and(frame[y:y+h, x:x+w], frame[y:y+h, x:x+w], mask=mask)),1,0)
                         frames[frameCount - layer.startFrame] = np.copy(frame2) 
                         #cv2.imshow("changes x", frame2)
@@ -145,8 +147,6 @@ class Exporter:
         with open(self.config["importPath"], "wb+") as file:
             pickle.dump((layers, contours, masks), file)
             
-
-
     def getMaxLengthOfLayers(self, layers):
         maxLength = 0
         for layer in layers:

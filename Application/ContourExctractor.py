@@ -56,16 +56,16 @@ class ContourExtractor:
         threads = self.config["videoBufferLength"]
         self.start = time.time()
         # start a bunch of frames and let them read from the video reader buffer until the video reader reaches EOF
-        with ThreadPool(threads) as pool:
+        with ThreadPool(16) as pool:
             while not videoReader.videoEnded():
                 if videoReader.buffer.qsize() == 0:
                     time.sleep(.5)
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
                 self.computeMovingAverage(tmpData)
-                #pool.map(self.getContours, tmpData)
-                for data in tmpData:
-                    self.getContours(data)
+                pool.map_async(self.getContours, tmpData)
+                #for data in tmpData:
+                #    self.getContours(data)
                 frameCount = tmpData[-1][0]
 
         videoReader.thread.join()
@@ -78,9 +78,8 @@ class ContourExtractor:
             time.sleep(0.1)
         firstFrame = self.averages.pop(frameCount, None)
        
-        if frameCount % (60*30) == 0:
-            print(f" \r {frameCount/(60*30)} Minutes processed in {round((time.time() - self.start), 2)} each", end='\r')
-            self.start = time.time()
+        if frameCount % (60*30) == 1:
+            print(f" \r {frameCount/(60*30)} Minutes processed in {round((time.time() - self.start)/(frameCount/(60*30)), 2)} each", end='\r')
 
         gray = self.prepareFrame(frame)
         frameDelta = cv2.absdiff(gray, firstFrame)
