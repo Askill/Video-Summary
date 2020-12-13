@@ -41,7 +41,7 @@ class LayerFactory:
                 contours = data[frameNumber]
                 masks = maskArr[frameNumber]
                 masks = [np.unpackbits(mask, axis=0) for mask, contours in zip(masks, contours)]
-                if frameNumber%5000 == 0:
+                if frameNumber%100 == 0:
                     print(f" {int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction", end='\r')
 
                 tmp = [[frameNumber, contour, mask] for contour, mask in zip(contours, masks)]

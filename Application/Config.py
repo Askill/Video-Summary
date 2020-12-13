@@ -1,7 +1,7 @@
 
 class Config:
     c = {
-        "min_area" : 500,
+        "min_area" : 100,
         "max_area" : 40000,
         "threashold" : 8,
         "resizeWidth" : 512,

@@ -41,7 +41,10 @@ def genVideo():
             objectX -= objectSpeedX
             objectY -= objectSpeedY
 
-            objectShape = [(objectX, objectY), (objectX + objectWidth, objectY + objectHeight)] 
+            objectShape = [
+                (objectX, objectY), 
+                (objectX + objectWidth, objectY + objectHeight)
+            ] 
             img = Image.new("RGB", (xmax, ymax)) 
             img1 = ImageDraw.Draw(img)   
             img1.rectangle(objectShape, fill = color) 

@@ -39,9 +39,10 @@ class Layer:
                 self.bounds[frameNumber - self.startFrame].append(bound)
                 self.masks[frameNumber - self.startFrame].append(mask)
         else:
+            while len(self.bounds) + self.startFrame < frameNumber:
+                self.bounds.append([bound])
+                self.masks.append([mask])
             self.lastFrame = frameNumber
-            self.bounds.append([bound])
-            self.masks.append([mask])
 
     def calcStats(self):
         '''calculates average distance, variation and deviation of layer movement'''
