@@ -38,11 +38,13 @@ class VideoReader:
     def pop(self):
         return self.buffer.get(block=True)
 
-    def fillBuffer(self):
+    def fillBuffer(self, listOfFrames=None):
         if self.buffer.full():
             print("VideoReader::fillBuffer was called when buffer was full.")
         self.endFrame = int(self.vc.get(cv2.CAP_PROP_FRAME_COUNT))
-
+        if listOfFrames is not None:
+            self.listOfFrames = listOfFrames
+            
         if self.listOfFrames is not None:
             self.thread = threading.Thread(target=self.readFramesByList, args=())
         else:

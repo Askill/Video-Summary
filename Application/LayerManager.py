@@ -19,16 +19,30 @@ class LayerManager:
         self.resizeWidth = config["resizeWidth"]
         self.footagePath = config["inputPath"]
         self.config = config
-        self.classifier = Classifier()
+        #self.classifier = Classifier()
         self.tags = []
         print("LayerManager constructed")
 
     def transformLayers(self):
         print("'Cleaning' Layers")
+        print("Before deleting short layers ", len(self.layers))
         self.freeMin()
+        print("Before deleting long layers ", len(self.layers))
         self.freeMax()
-        self.sortLayers()            
+        self.sortLayers()     
         self.calcStats()
+        self.deleteSparse()
+        print("after deleting sparse layers ", len(self.layers))
+
+    def deleteSparse(self):
+        toDelete = []
+        for i, l in enumerate(self.layers):
+            empty = l.bounds.count([])
+            if empty / len(l) > 0.2:
+                toDelete.append(i)
+
+        for i, id in enumerate(toDelete):
+            del self.layers[id - i]
 
     def calcStats(self):
         for layer in self.layers:
@@ -58,7 +72,7 @@ class LayerManager:
         self.data.clear()
         layers = []
         for l in self.layers:
-            if l.getLength() > self.minLayerLength:
+            if len(l) > self.minLayerLength:
                 layers.append(l) 
         self.layers = layers
         
@@ -66,7 +80,7 @@ class LayerManager:
     def freeMax(self):
         layers = []
         for l in self.layers:
-            if l.getLength() < self.maxLayerLength:
+            if len(l) < self.maxLayerLength:
                 layers.append(l) 
         self.layers = layers
         

@@ -1,20 +1,19 @@
 
 class Config:
     c = {
-        "min_area" : 100,
+        "min_area" : 5000,
         "max_area" : 40000,
-        "threashold" : 8,
+        "threashold" : 7,
         "resizeWidth" : 512,
         "inputPath" : None,
         "outputPath": None,
-        "maxLayerLength": 900, 
-        "minLayerLength": 20,    
-        "tolerance": 5,
+        "maxLayerLength": 1500, 
+        "minLayerLength": 40,    
+        "tolerance": 20,
         "maxLength": None,
-        "ttolerance": 60,
+        "ttolerance": 20,
         "videoBufferLength": 500,
-        "noiseThreashold": 0.4,
-        "LayersPerContour": 20,
+        "LayersPerContour": 220,
         "avgNum":10
         }
 

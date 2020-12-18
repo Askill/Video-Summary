@@ -45,19 +45,13 @@ class Exporter:
             
             if len(layer.bounds[0]) == 0:
                 continue
-            if layer.stats["dev"] < 5:
-                continue
-            
+            videoReader = VideoReader(self.config)
             listOfFrames = self.makeListOfFrames([layer])
-
-            videoReader = VideoReader(self.config, listOfFrames)
-            videoReader.fillBuffer()
+            
+            videoReader.fillBuffer(listOfFrames)
 
             while not videoReader.videoEnded():
                 frameCount, frame = videoReader.pop()
-
-                if frameCount % (60*self.fps) == 0:
-                    print("Minutes processed: ", frameCount/(60*self.fps))
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
@@ -77,8 +71,10 @@ class Exporter:
                 cv2.putText(frame2, str(layer.stats["avg"]) + "  " + str(layer.stats["var"]) + "  " + str(layer.stats["dev"]), (int(500), int(500)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255), 2)
                 writer.append_data(frame2)
 
-            videoReader.thread.join()
             videoReader.vc.release()
+            videoReader.thread.join()
+        videoReader.vc.release()
+        videoReader.thread.join()
         writer.close()
         
 
@@ -159,6 +155,6 @@ class Exporter:
         frameNumbers = set()
         for layer in layers:
             frameNumbers.update(
-                list(range(layer.startFrame, layer.startFrame + len(layer.bounds))))
+                list(range(layer.startFrame, layer.startFrame + len(layer))))
 
         return sorted(list(frameNumbers))

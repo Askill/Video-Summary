@@ -18,7 +18,7 @@ def main():
     start = startTotal
     config = Config()
 
-    fileName = "X23-1.mp4"
+    fileName = "3.mp4"
     outputPath = os.path.join(os.path.dirname(__file__), "output")
     dirName = os.path.join(os.path.dirname(__file__), "generate test footage")
 
@@ -29,9 +29,6 @@ def main():
 
     config["w"], config["h"] = VideoReader(config).getWH()
     stats = dict()
-    stats["File Name"] = config["importPath"]
-    stats["threads"] = "16, 16"
-    stats["buffer"] = config["bufferLength"]
     if not os.path.exists(config["importPath"]):
         contours, masks = ContourExtractor(config).extractContours()
         stats["Contour Extractor"] = time.time() - start
@@ -54,9 +51,12 @@ def main():
 
     #layerManager.tagLayers()
     layers = layerManager.layers
+    print([len(l) for l in sorted(layers, key = lambda c:len(c), reverse=True)[:20]])
+    if len(layers) == 0:
+        exit(1)
     exporter = Exporter(config)
     print(f"Exporting {len(contours)} Contours and {len(layers)} Layers")
-    exporter.export(layers, contours, masks, raw=True, overlayed=True)
+    exporter.export(layers, contours, masks, raw=True, overlayed=False)
     stats["Exporter"] = time.time() - start
 
     print("Total time: ", time.time() - startTotal)

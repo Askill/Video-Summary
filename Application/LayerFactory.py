@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import copy
 
+
 class LayerFactory:
     def __init__(self, config, data=None):
         self.data = {}
@@ -33,120 +34,138 @@ class LayerFactory:
         for contour, mask in zip(contours, masks):
             mask = np.unpackbits(mask, axis=0)
             self.layers.append(Layer(frameNumber, contour, mask, self.config))
-  
+
         self.oldLayerIDs = []
-        
+
         with ThreadPool(16) as pool:
             for frameNumber in sorted(data.keys()):
                 contours = data[frameNumber]
                 masks = maskArr[frameNumber]
-                masks = [np.unpackbits(mask, axis=0) for mask, contours in zip(masks, contours)]
-                if frameNumber%100 == 0:
-                    print(f" {int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction", end='\r')
+                masks = [np.unpackbits(mask, axis=0)
+                         for mask, contours in zip(masks, contours)]
+                if frameNumber % 100 == 0:
+                    print(
+                        f" {int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction {len(self.layers)} Layers", end='\r')
 
-                tmp = [[frameNumber, contour, mask] for contour, mask in zip(contours, masks)]
+                tmp = [[frameNumber, contour, mask]
+                       for contour, mask in zip(contours, masks)]
                 #pool.map(self.getLayers, tmp)
                 for x in tmp:
                     self.getLayers(x)
 
+        #self.joinLayers()
         return self.layers
 
     def getLayers(self, data):
         frameNumber = data[0]
         bounds = data[1]
         mask = data[2]
-        (x,y,w,h) = bounds
+        (x, y, w, h) = bounds
         tol = self.tolerance
-        foundLayer = 0
-        #to merge layers
-        foundLayerIDs = []
 
-        for i in range(0, len(self.layers)):
-            if foundLayer >= self.config["LayersPerContour"]:
-                break
-            
-            if i in self.oldLayerIDs:
+        foundLayerIDs = set()
+        for i, layer in enumerate(self.layers):
+            if frameNumber - layer.lastFrame > self.ttolerance:
                 continue
-            if frameNumber - self.layers[i].lastFrame > self.ttolerance:
-                self.oldLayerIDs.append(i)
-                continue
-            
-            lastXframes = 5
-            if len(self.layers[i].bounds) < lastXframes:
-                lastXframes = len(self.layers[i].bounds)
-            lastBounds = [bound for bounds in self.layers[i].bounds[-lastXframes:] for bound in bounds]
 
-            for j, bounds in enumerate(lastBounds):
+            lastXframes = min(40, len(layer))
+            lastBounds = [bound for bounds in layer.bounds[-lastXframes:]
+                          for bound in bounds]
+
+            for j, bounds in enumerate(lastBounds[::-1]):
                 if bounds is None:
                     break
-                (x2,y2,w2,h2) = bounds
-                if self.contoursOverlay((x-tol,y+h+tol), (x+w+tol,y-tol), (x2,y2+h2), (x2+w2,y2)):
-                    self.layers[i].add(frameNumber, (x,y,w,h), mask)
-                    foundLayer += 1
-                    foundLayerIDs.append(i)
+                (x2, y2, w2, h2) = bounds
+                if self.contoursOverlay((x-tol, y+h+tol), (x+w+tol, y-tol), (x2, y2+h2), (x2+w2, y2)):
+                    layer.add(frameNumber, (x, y, w, h), mask)
+                    foundLayerIDs.add(i)
                     break
 
-        if foundLayer == 0:
-            self.layers.append(Layer(frameNumber, (x,y,w,h), mask, self.config))
-
+        foundLayerIDs = sorted(list(foundLayerIDs))
+        if len(foundLayerIDs) == 0:
+            self.layers.append(
+                Layer(frameNumber, (x, y, w, h), mask, self.config))
         if len(foundLayerIDs) > 1:
             self.mergeLayers(foundLayerIDs)
 
     def mergeLayers(self, foundLayerIDs):
-        
-        layers = self.sortLayers(foundLayerIDs)
+        layers = self.getLayersByID(foundLayerIDs)
         layer1 = layers[0]
-        for layerID in range(0, len(layers)):
-            layer2 = layers[layerID]
-            layer1 = self.merge2Layers(layer1, layer2)
-        
-        self.layers[foundLayerIDs[0]] = layer1
+        for layer in layers[1:]:
+            for i, (contours, masks) in enumerate(zip(layer.bounds, layer.masks)):
+                for contour, mask in zip(contours, masks):
+                    layer1.add(layer.startFrame, contour, mask)
 
-        layers = []
+        for i, id in enumerate(foundLayerIDs):
+            del self.layers[id - i]
+
+        self.layers.append(layer1)
+
+    def joinLayers(self):
+        self.layers.sort(key=lambda c: c.startFrame)
+        minFrame = self.getMinStart(self.layers)
+        maxFrame = self.getMaxEnd(self.layers)
+
+        for i in range(minFrame, maxFrame):
+            pL, indexes = self.getPossibleLayers(i)
+            if len(pL) <= 1:
+                continue
+            merge = set()
+            innerMax = self.getMaxEnd(pL)
+            for x in range(self.getMinStart(pL), innerMax):
+                for lc, l in enumerate(pL):
+                    if l.startFrame < x or l.lastFrame > x:
+                        continue
+                    for lc2, l2 in enumerate(pL):
+                        if lc2 == lc:
+                            continue
+                        for cnt in l.bounds[x-l.startFrame]:
+                            for cnt2 in l2.bounds[x-l2.startFrame]:
+                                if self.contoursOverlay(cnt, cnt2):
+                                    merge.add(indexes[lc])
+                                    merge.add(indexes[lc2])
+            merge = list(merge)
+            if len(merge) > 1:
+                self.mergeLayers(megre)
+            i = innerMax
+
+    def getPossibleLayers(self, t):
+        ret = []
+        ii = []
         for i, layer in enumerate(self.layers):
-            if i not in foundLayerIDs[1:]:
-                layers.append(layer)
-        self.layers = layers
-        
-            
-    def merge2Layers(self, layer1, layer2):
-        """Merges 2 Layers, Layer1 must start before Layer2"""
-        
-        dSF = layer2.startFrame - layer1.startFrame
-        l1bounds = copy.deepcopy(layer1.bounds)
-        l1masks = copy.deepcopy(layer1.masks)
+            if layer.startFrame <= t and layer.lastFrame <= t:
+                ret.append(layer)
+                ii.append(i)
+        return (ret, ii)
 
-        for i in range(len(layer2.bounds)):
-            bounds = layer2.bounds[i]
-            masks = layer2.masks[i]
-            while dSF + i >= len(l1bounds):
-                l1bounds.append([])
-            while dSF + i >= len(l1masks):
-                l1masks.append([])
+    def getMinStart(self, layers):
+        minFrame = layers[0].startFrame
+        for l in layers:
+            if l.startFrame < minFrame:
+                minFrame = l.startFrame
+        return minFrame
 
-            for bound, mask in zip(bounds, masks):
-                if bound not in l1bounds[dSF + i]: 
-                    l1bounds[dSF + i].append(bound)
-                    l1masks[dSF + i].append(mask)
+    def getMaxEnd(self, layers):
+        maxFrame = layers[0].lastFrame
+        for l in layers:
+            if l.lastFrame < maxFrame:
+                maxFrame = l.lastFrame
 
-        layer1.bounds = l1bounds
-        layer1.masks = l1masks
-        return layer1
+        return maxFrame
 
-
-    def contoursOverlay(self, l1, r1, l2, r2): 
-        # If one rectangle is on left side of other 
-        if(l1[0] >= r2[0] or l2[0] >= r1[0]): 
+    def contoursOverlay(self, l1, r1, l2, r2):
+        # If one rectangle is on left side of other
+        if(l1[0] >= r2[0] or l2[0] >= r1[0]):
             return False
-        # If one rectangle is above other 
-        if(l1[1] <= r2[1] or l2[1] <= r1[1]): 
+        # If one rectangle is above other
+        if(l1[1] <= r2[1] or l2[1] <= r1[1]):
             return False
         return True
 
-    def sortLayers(self, foundLayerIDs):
+    def getLayersByID(self, foundLayerIDs):
         layers = []
         for layerID in foundLayerIDs:
             layers.append(self.layers[layerID])
-        
-        layers.sort(key = lambda c:c.startFrame)
+
+        layers.sort(key=lambda c: c.startFrame)
         return layers

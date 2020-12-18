@@ -34,15 +34,19 @@ class Layer:
 
     def add(self, frameNumber, bound, mask):
         '''Adds a bound to the Layer at the layer index which corresponds to the given framenumber'''
-        if self.startFrame + len(self.bounds) - 1 > frameNumber:
-            if len(self.bounds[frameNumber - self.startFrame]) >= 1:
-                self.bounds[frameNumber - self.startFrame].append(bound)
-                self.masks[frameNumber - self.startFrame].append(mask)
-        else:
-            while len(self.bounds) + self.startFrame < frameNumber:
+        index = frameNumber - self.startFrame
+
+        if frameNumber > self.lastFrame:
+            for i in range(frameNumber - self.lastFrame):
                 self.bounds.append([bound])
                 self.masks.append([mask])
+
             self.lastFrame = frameNumber
+
+        if bound not in self.bounds[index]:
+            self.bounds[index].append(bound)
+            self.masks[index].append(mask)
+
 
     def calcStats(self):
         '''calculates average distance, variation and deviation of layer movement'''
