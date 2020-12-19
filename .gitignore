@@ -6,7 +6,7 @@ generate test footage/3.MP4
 short.mp4
 
 __pycache__/
-
+.vscode/
 *.mp4
 
 *.weights
