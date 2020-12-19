@@ -72,7 +72,7 @@ class LayerFactory:
             lastBounds = [bound for bounds in layer.bounds[-lastXframes:]
                           for bound in bounds]
 
-            for j, bounds in enumerate(lastBounds[::-1]):
+            for j, bounds in enumerate(sorted(lastBounds, reverse=True)):
                 if bounds is None:
                     break
                 (x2, y2, w2, h2) = bounds

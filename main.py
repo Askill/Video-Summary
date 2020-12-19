@@ -10,9 +10,6 @@ from Application.VideoReader import VideoReader
 from Application.LayerManager import LayerManager
 from Application.Classifiers import *
 
-
-
-
 def main():
     startTotal = time.time()
     start = startTotal

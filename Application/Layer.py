@@ -35,12 +35,12 @@ class Layer:
     def add(self, frameNumber, bound, mask):
         '''Adds a bound to the Layer at the layer index which corresponds to the given framenumber'''
         index = frameNumber - self.startFrame
-
+        if index < 0:
+            return
         if frameNumber > self.lastFrame:
             for i in range(frameNumber - self.lastFrame):
                 self.bounds.append([bound])
                 self.masks.append([mask])
-
             self.lastFrame = frameNumber
 
         if bound not in self.bounds[index]:

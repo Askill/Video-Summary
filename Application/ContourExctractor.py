@@ -43,7 +43,6 @@ class ContourExtractor:
         self.xDim = 0
         self.yDim = 0       
         self.config = config
-        self.diff = []
         self.lastFrames = None
         self.averages = dict()
 
@@ -97,11 +96,12 @@ class ContourExtractor:
         for c in cnts:
             ca = cv2.contourArea(c)
             (x, y, w, h) = cv2.boundingRect(c)
-            #ca = (x+w)*(y+h)
             if ca < self.min_area or ca > self.max_area:
                 continue
 
             contours.append((x, y, w, h))
+            # the mask has to be packed like this, since np doesn't have a bit array, 
+            # meaning every bit in the mask would take up 8bits, which migth be too much
             masks.append(np.packbits(np.copy(thresh[y:y+h,x:x+w]), axis=0))
             
        
@@ -121,7 +121,6 @@ class ContourExtractor:
         avg = []
         averageFrames = self.config["avgNum"]
 
-        nth = int(averageFrames/3) # only take /x  x frames to average
         if frames[0][0] < averageFrames:
             frame = frames[0][1]
             frame = self.prepareFrame(frame)
