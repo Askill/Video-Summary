@@ -46,7 +46,7 @@ class ContourExtractor:
         self.lastFrames = None
         self.averages = dict()
 
-        print("ContourExtractor initiated")
+        #print("ContourExtractor initiated")
 
     def extractContours(self):      
         videoReader = VideoReader(self.config)    
@@ -55,10 +55,10 @@ class ContourExtractor:
         threads = self.config["videoBufferLength"]
         self.start = time.time()
         # start a bunch of frames and let them read from the video reader buffer until the video reader reaches EOF
-        with ThreadPool(16) as pool:
+        with ThreadPool(self.config["ce_comp_threads"]) as pool:
             while not videoReader.videoEnded():
                 if videoReader.buffer.qsize() == 0:
-                    time.sleep(.5)
+                    time.sleep(.1)
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
                 self.computeMovingAverage(tmpData)
@@ -135,7 +135,7 @@ class ContourExtractor:
             frames = self.lastFrames + frames 
 
         tmp = [[j, frames, averageFrames] for j in range(averageFrames, len(frames))]
-        with ThreadPool(16) as pool:
+        with ThreadPool(self.config["ce_average_threads"]) as pool:
             pool.map(self.averageDaFrames, tmp)
 
         self.lastFrames = frames[-averageFrames:] 

@@ -19,7 +19,7 @@ class LayerFactory:
         self.resizeWidth = config["resizeWidth"]
         self.footagePath = config["inputPath"]
         self.config = config
-        print("LayerFactory constructed")
+        #print("LayerFactory constructed")
         self.data = data
         if data is not None:
             self.extractLayers(data)
@@ -37,7 +37,7 @@ class LayerFactory:
 
         self.oldLayerIDs = []
 
-        with ThreadPool(16) as pool:
+        with ThreadPool(self.config["lf_threads"]) as pool:
             for frameNumber in sorted(data.keys()):
                 contours = data[frameNumber]
                 masks = maskArr[frameNumber]
@@ -49,11 +49,11 @@ class LayerFactory:
 
                 tmp = [[frameNumber, contour, mask]
                        for contour, mask in zip(contours, masks)]
-                #pool.map(self.getLayers, tmp)
-                for x in tmp:
-                    self.getLayers(x)
+                pool.map(self.getLayers, tmp)
+                #for x in tmp:
+                    #self.getLayers(x)
 
-        #self.joinLayers()
+        self.joinLayers()
         return self.layers
 
     def getLayers(self, data):

@@ -16,7 +16,7 @@ class Exporter:
         self.outputPath = config["outputPath"]
         self.resizeWidth = config["resizeWidth"]
         self.config = config
-        print("Exporter initiated")
+        #print("Exporter initiated")
 
     def export(self, layers, contours, masks, raw = True, overlayed = True):
         if raw:

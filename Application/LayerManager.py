@@ -21,18 +21,18 @@ class LayerManager:
         self.config = config
         #self.classifier = Classifier()
         self.tags = []
-        print("LayerManager constructed")
+        #print("LayerManager constructed")
 
     def transformLayers(self):
-        print("'Cleaning' Layers")
-        print("Before deleting short layers ", len(self.layers))
+        #print("'Cleaning' Layers")
+        #print("Before deleting short layers ", len(self.layers))
         self.freeMin()
-        print("Before deleting long layers ", len(self.layers))
+        #print("Before deleting long layers ", len(self.layers))
         self.freeMax()
         self.sortLayers()     
         self.calcStats()
         self.deleteSparse()
-        print("after deleting sparse layers ", len(self.layers))
+        #print("after deleting sparse layers ", len(self.layers))
 
     def deleteSparse(self):
         toDelete = []

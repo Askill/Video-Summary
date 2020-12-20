@@ -14,14 +14,17 @@ class Config:
         "ttolerance": 20,
         "videoBufferLength": 500,
         "LayersPerContour": 220,
-        "avgNum":10
+        "avgNum":10,
+        "ce_average_threads": 16,
+        "ce_comp_threads":16,
+        "lf_threads":16,
         }
 
     def __init__(self):
         '''This is basically just a wrapper for a json / python dict'''
-        print("Current Config:")
-        for key, value in self.c.items():
-            print(f"{key}:\t\t{value}")
+        #print("Current Config:")
+        #for key, value in self.c.items():
+        #    print(f"{key}:\t\t{value}")
     
     def __getitem__(self, key):
         if key not in self.c:
