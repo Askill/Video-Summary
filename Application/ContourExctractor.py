@@ -57,12 +57,12 @@ class ContourExtractor:
         # start a bunch of frames and let them read from the video reader buffer until the video reader reaches EOF
         with ThreadPool(self.config["ce_comp_threads"]) as pool:
             while not videoReader.videoEnded():
-                if videoReader.buffer.qsize() == 0:
-                    time.sleep(.1)
+                if videoReader.buffer.qsize() <= 5:
+                    time.sleep(.5)
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
                 self.computeMovingAverage(tmpData)
-                pool.map_async(self.getContours, tmpData)
+                pool.map(self.getContours, tmpData)
                 #for data in tmpData:
                 #    self.getContours(data)
                 frameCount = tmpData[-1][0]
@@ -88,7 +88,6 @@ class ContourExtractor:
         #cv2.imshow("changes x", thresh)
         #cv2.waitKey(10) & 0XFF
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        self.diff.append(np.count_nonzero(thresh))
         cnts = imutils.grab_contours(cnts)
 
         contours = []
@@ -103,8 +102,6 @@ class ContourExtractor:
             # the mask has to be packed like this, since np doesn't have a bit array, 
             # meaning every bit in the mask would take up 8bits, which migth be too much
             masks.append(np.packbits(np.copy(thresh[y:y+h,x:x+w]), axis=0))
-            
-       
             
         if len(contours) != 0 and contours is not None: 
             # this should be thread safe

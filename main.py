@@ -14,8 +14,6 @@ import csv
 
 def main(v1, v2, v3, v4):
 
-
-
     startTotal = time.time()
     start = startTotal
     config = Config()
@@ -80,10 +78,10 @@ def main(v1, v2, v3, v4):
     exit(0)
 
 if __name__ == "__main__":
-    ass = list(range(1, 18, 4))
-    bss = list(range(1, 18, 4))
+    ass = list(range(4, 18, 4))
+    bss = list(range(4, 18, 4))
     css = list(range(1, 16, 8))
-    dss = list(range(50, 500, 200)) 
+    dss = list(range(100, 500, 200)) 
     params = [ass, bss, css, dss]
     params = list(product(*params))
     counter = 0
