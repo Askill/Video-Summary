@@ -25,38 +25,39 @@ def main():
     config["importPath"] = os.path.join(outputPath, fileName.split(".")[0] + ".txt")
 
     config["w"], config["h"] = VideoReader(config).getWH()
-    stats = dict()
+    stats = []
     if not os.path.exists(config["importPath"]):
         contours, masks = ContourExtractor(config).extractContours()
-        stats["Contour Extractor"] = time.time() - start
+        stats.append(time.time() - start)
         start = time.time()
 
         print("Time consumed extracting contours: ", stats["Contour Extractor"])
         layerFactory = LayerFactory(config)
         layers = layerFactory.extractLayers(contours, masks)
-        stats["Layer Factory"] = time.time() - start
+        stats.append(time.time() - start)
         start = time.time()
     else:
         layers, contours, masks = Importer(config).importRawData()
-        layerFactory = LayerFactory(config)
-        layers = layerFactory.extractLayers(contours, masks)
+        #layerFactory = LayerFactory(config)
+        #layers = layerFactory.extractLayers(contours, masks)
 
     layerManager = LayerManager(config, layers)
     layerManager.transformLayers()
-    stats["Layer Manager"] = time.time() - start
+    stats.append(time.time() - start)
     start = time.time()
 
     #layerManager.tagLayers()
     layers = layerManager.layers
-    print([len(l) for l in sorted(layers, key = lambda c:len(c), reverse=True)[:20]])
+    #print([len(l) for l in sorted(layers, key = lambda c:len(c), reverse=True)[:20]])
     if len(layers) == 0:
         exit(1)
     exporter = Exporter(config)
     print(f"Exporting {len(contours)} Contours and {len(layers)} Layers")
-    exporter.export(layers, contours, masks, raw=True, overlayed=False)
-    stats["Exporter"] = time.time() - start
+    exporter.export(layers, contours, masks, raw=True, overlayed=True)
+    stats.append(time.time() - start)
 
     print("Total time: ", time.time() - startTotal)
+    stats.append(time.time() - startTotal)
     print(stats)
     exit(0)
 

@@ -6,6 +6,7 @@ import cv2
 from Application.VideoReader import VideoReader
 import pickle
 import time 
+from datetime import datetime
 
 class Exporter:
     fps = 30
@@ -58,8 +59,10 @@ class Exporter:
                     x, y, w, h = (int(x * factor), int(y * factor), int(w * factor), int(h * factor))
                     
                     frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
-                    cv2.putText(frame2, str(i) + "  " + str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
-                cv2.putText(frame2, str(layer.stats["avg"]) + "  " + str(layer.stats["var"]) + "  " + str(layer.stats["dev"]), (int(500), int(500)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255), 2)
+
+                    time = datetime.fromtimestamp(int(frameCount/self.fps) + videoReader.getStartTime())
+                    cv2.putText(frame2, str(i) + "  " + f"{time.hour}:{time.minute}:{time.second}", (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
+                #cv2.putText(frame2, str(layer.stats["avg"]) + "  " + str(layer.stats["var"]) + "  " + str(layer.stats["dev"]), (int(500), int(500)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255), 2)
                 writer.append_data(frame2)
             videoReader.vc.release()
             videoReader.thread.join()
@@ -81,7 +84,7 @@ class Exporter:
             frames.append(np.copy(underlay))
         exportFrame = 0
 
-        
+    
         while not videoReader.videoEnded():
             frameCount, frame = videoReader.pop()
             if frameCount % (60*self.fps) == 0:
@@ -112,7 +115,8 @@ class Exporter:
                         frames[frameCount - layer.startFrame] = np.copy(frame2) 
                         #cv2.imshow("changes x", frame2)
                         #cv2.waitKey(10) & 0XFF
-                        cv2.putText(frames[frameCount - layer.startFrame],  str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
+                        time = datetime.fromtimestamp(int(frameCount/self.fps) + videoReader.getStartTime())
+                        cv2.putText(frames[frameCount - layer.startFrame], f"{time.hour}:{time.minute}:{time.second}", (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
 
         videoReader.thread.join()
         videoReader.vc.release()

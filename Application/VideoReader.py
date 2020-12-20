@@ -4,8 +4,10 @@ import cv2
 from time import sleep
 from queue import Queue
 import threading
+import pathlib
 from Application.Config import Config
-
+import os
+from datetime import datetime
 
 class VideoReader:
     listOfFrames = None
@@ -25,6 +27,8 @@ class VideoReader:
         self.vc = cv2.VideoCapture(videoPath)
         self.stopped = False
         self.getWH()
+        self.calcFPS()
+        self.calcStartTime()
         if setOfFrames is not None:
             self.listOfFrames = sorted(setOfFrames)      
 
@@ -95,5 +99,18 @@ class VideoReader:
         else:
             return False
 
+    def calcFPS(self):
+        self.fps = self.vc.get(cv2.CAP_PROP_FPS)
+
     def getFPS(self):
-        return self.vc.get(cv2.CAP_PROP_FPS)
+        return self.fps
+    
+    def calcStartTime(self):
+        starttime = os.stat(self.videoPath).st_mtime
+        fc = int(self.vc.get(cv2.CAP_PROP_FRAME_COUNT))
+        length = fc / self.getFPS()
+        starttime = starttime - length
+        self.starttime = starttime
+
+    def getStartTime(self):
+        return self.starttime
