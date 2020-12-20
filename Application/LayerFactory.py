@@ -94,7 +94,7 @@ class LayerFactory:
         for layer in layers[1:]:
             for i, (contours, masks) in enumerate(zip(layer.bounds, layer.masks)):
                 for contour, mask in zip(contours, masks):
-                    layer1.add(layer.startFrame, contour, mask)
+                    layer1.add(layer.startFrame + i, contour, mask)
 
         for i, id in enumerate(foundLayerIDs):
             del self.layers[id - i]

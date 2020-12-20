@@ -42,35 +42,25 @@ class Exporter:
         start = time.time()
         for i, layer in enumerate(layers):
             print(f"\r {i}/{len(layers)} {round(i/len(layers)*100,2)}% {round((time.time() - start), 2)}s", end='\r')
-            
             if len(layer.bounds[0]) == 0:
                 continue
             videoReader = VideoReader(self.config)
             listOfFrames = self.makeListOfFrames([layer])
-            
             videoReader.fillBuffer(listOfFrames)
-
             while not videoReader.videoEnded():
                 frameCount, frame = videoReader.pop()
-
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
                 frame2 = np.copy(underlay)
                 for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
                     if x is None:
                         continue
                     factor = videoReader.w / self.resizeWidth
-                    x = int(x * factor)
-                    y = int(y * factor)
-                    w = int(w * factor)
-                    h = int(h * factor)
+                    x, y, w, h = (int(x * factor), int(y * factor), int(w * factor), int(h * factor))
                     
                     frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
-
                     cv2.putText(frame2, str(i) + "  " + str(int(frameCount/self.fps)), (int(x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255), 2)
                 cv2.putText(frame2, str(layer.stats["avg"]) + "  " + str(layer.stats["var"]) + "  " + str(layer.stats["dev"]), (int(500), int(500)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255), 2)
                 writer.append_data(frame2)
-
             videoReader.vc.release()
             videoReader.thread.join()
         videoReader.vc.release()
@@ -107,14 +97,10 @@ class Exporter:
                         underlay1 = underlay
                         (x, y, w, h) = layer.bounds[frameCount - layer.startFrame][i]
                         mask = layer.masks[frameCount - layer.startFrame][i]
-                        
                         if x is None:
                             break
                         factor = videoReader.w / self.resizeWidth
-                        x = int(x * factor)
-                        y = int(y * factor)
-                        w = int(w * factor)
-                        h = int(h * factor)
+                        x, y, w, h = (int(x * factor), int(y * factor), int(w * factor), int(h * factor))
                         
                         mask = imutils.resize(mask, width=w, height=h+1)
                         mask = np.resize(mask, (h,w))
