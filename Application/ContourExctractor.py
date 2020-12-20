@@ -55,21 +55,27 @@ class ContourExtractor:
         threads = self.config["videoBufferLength"]
         self.start = time.time()
         # start a bunch of frames and let them read from the video reader buffer until the video reader reaches EOF
-        with ThreadPool(self.config["ce_comp_threads"]) as pool:
+        with ThreadPool(2) as pool:
             while not videoReader.videoEnded():
                 if videoReader.buffer.qsize() <= 5:
                     time.sleep(.5)
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
-                self.computeMovingAverage(tmpData)
-                pool.map(self.getContours, tmpData)
+                pool.map(self.computeMovingAverage, (tmpData,))
+                pool.map(self.async2, (tmpData,))
+
                 #for data in tmpData:
                 #    self.getContours(data)
                 frameCount = tmpData[-1][0]
 
         videoReader.thread.join()
         return self.extractedContours, self.extractedMasks
-    
+
+    def async2(self, tmpData):
+        with ThreadPool(self.config["ce_comp_threads"]) as pool2:
+            pool2.map(self.getContours, tmpData)
+
+
     def getContours(self, data):
         frameCount, frame = data
         # wait for the reference frame, which is calculated by averaging some revious frames

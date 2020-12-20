@@ -61,11 +61,10 @@ def main(v1, v2, v3, v4):
     #layerManager.tagLayers()
     layers = layerManager.layers
     #print([len(l) for l in sorted(layers, key = lambda c:len(c), reverse=True)[:20]])
-    if len(layers) == 0:
-        exit(1)
+
     exporter = Exporter(config)
     #print(f"Exporting {len(contours)} Contours and {len(layers)} Layers")
-    #exporter.export(layers, contours, masks, raw=False, overlayed=True)
+    exporter.export(layers, contours, masks, raw=False, overlayed=True)
     stats.append(time.time() - start)
 
     print("Total time: ", time.time() - startTotal)
@@ -75,13 +74,25 @@ def main(v1, v2, v3, v4):
         writer = csv.writer(myfile)
         writer.writerow(stats)
     #print(stats)
-    exit(0)
+    
 
 if __name__ == "__main__":
-    ass = list(range(4, 18, 4))
-    bss = list(range(4, 18, 4))
-    css = list(range(1, 16, 8))
-    dss = list(range(100, 500, 200)) 
+    ass = list(range(1, 16, 2))
+    bss = list(range(1, 16, 2))
+    css = [16]
+    dss = [500]
+    params = [ass, bss, css, dss]
+    params = list(product(*params))
+    counter = 0
+    for a,b,c,d in params:
+        print(f"{counter}/{len(params)} - {counter/len(params)}  {a, b, c, d}")
+        counter += 1
+        main(a, b, c, d)
+
+    ass = [16]
+    bss = [16]
+    css = list(range(1, 16, 4))
+    dss = list(range(50, 500, 200)) 
     params = [ass, bss, css, dss]
     params = list(product(*params))
     counter = 0
