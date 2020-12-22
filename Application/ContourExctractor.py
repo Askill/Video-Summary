@@ -50,26 +50,32 @@ class ContourExtractor:
 
     def extractContours(self):      
         videoReader = VideoReader(self.config)    
+        self.fps = videoReader.getFPS()
+        self.length = videoReader.getLength()
         videoReader.fillBuffer()
 
         threads = self.config["videoBufferLength"]
         self.start = time.time()
         # start a bunch of frames and let them read from the video reader buffer until the video reader reaches EOF
-        with ThreadPool(16) as pool:
+        with ThreadPool(2) as pool:
             while not videoReader.videoEnded():
                 if videoReader.buffer.qsize() == 0:
                     time.sleep(.5)
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
-                self.computeMovingAverage(tmpData)
-                pool.map_async(self.getContours, tmpData)
+                pool.map(self.computeMovingAverage, (tmpData,))
+                pool.map(self.async2, (tmpData,))
                 #for data in tmpData:
                 #    self.getContours(data)
                 frameCount = tmpData[-1][0]
 
         videoReader.thread.join()
         return self.extractedContours, self.extractedMasks
-    
+
+    def async2(self, tmpData):
+        with ThreadPool(16) as pool2:
+            pool2.map(self.getContours, tmpData)
+
     def getContours(self, data):
         frameCount, frame = data
         # wait for the reference frame, which is calculated by averaging some revious frames
@@ -77,8 +83,8 @@ class ContourExtractor:
             time.sleep(0.1)
         firstFrame = self.averages.pop(frameCount, None)
        
-        if frameCount % (60*30) == 1:
-            print(f" \r {frameCount/(60*30)} Minutes processed in {round((time.time() - self.start)/(frameCount/(60*30)), 2)} each", end='\r')
+        if frameCount % (10*self.fps) == 1:
+            print(f" \r {round((frameCount/self.fps)/self.length, 4)*100} % processed in {round(time.time() - self.start, 2)}s", end='\r')
 
         gray = self.prepareFrame(frame)
         frameDelta = cv2.absdiff(gray, firstFrame)
@@ -88,7 +94,6 @@ class ContourExtractor:
         #cv2.imshow("changes x", thresh)
         #cv2.waitKey(10) & 0XFF
         cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        self.diff.append(np.count_nonzero(thresh))
         cnts = imutils.grab_contours(cnts)
 
         contours = []

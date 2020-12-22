@@ -28,6 +28,7 @@ class VideoReader:
         self.stopped = False
         self.getWH()
         self.calcFPS()
+        self.calcLength()
         self.calcStartTime()
         if setOfFrames is not None:
             self.listOfFrames = sorted(setOfFrames)      
@@ -103,12 +104,22 @@ class VideoReader:
         self.fps = self.vc.get(cv2.CAP_PROP_FPS)
 
     def getFPS(self):
+        if self.fps is None:
+            self.calcFPS()
         return self.fps
     
+    def calcLength(self):
+        fc = int(self.vc.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.length = fc / self.getFPS()
+
+    def getLength(self):
+        if self.length is None:
+            self.calcLength()
+        return self.length
+
     def calcStartTime(self):
         starttime = os.stat(self.videoPath).st_mtime
-        fc = int(self.vc.get(cv2.CAP_PROP_FRAME_COUNT))
-        length = fc / self.getFPS()
+        length = self.getLength()
         starttime = starttime - length
         self.starttime = starttime
 
