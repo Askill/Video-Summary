@@ -3,7 +3,6 @@ import time
 from Application.ContourExctractor import ContourExtractor
 from Application.Exporter import Exporter
 from Application.LayerFactory import LayerFactory
-from Application.Analyzer import Analyzer
 from Application.Config import Config
 from Application.Importer import Importer
 from Application.VideoReader import VideoReader
@@ -14,7 +13,7 @@ def main():
     startTotal = time.time()
     config = Config()
 
-    fileName = "x23.mp4"
+    fileName = "out.mp4"
     outputPath = os.path.join(os.path.dirname(__file__), "output")
     dirName = os.path.join(os.path.dirname(__file__), "generate test footage")
 
