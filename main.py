@@ -35,12 +35,11 @@ def main():
     layerManager = LayerManager(config, layers)
     layerManager.transformLayers()
 
-
     #layerManager.tagLayers()
     layers = layerManager.layers
-    #print([len(l) for l in sorted(layers, key = lambda c:len(c), reverse=True)[:20]])
     if len(layers) == 0:
         exit(1)
+
     exporter = Exporter(config)
     print(f"Exporting {len(contours)} Contours and {len(layers)} Layers")
     exporter.export(layers, contours, masks, raw=True, overlayed=True)

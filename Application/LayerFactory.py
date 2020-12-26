@@ -2,10 +2,9 @@ from Application.Layer import Layer
 from Application.Config import Config
 from Application.VideoReader import VideoReader
 from Application.Exporter import Exporter
+
 from multiprocessing.pool import ThreadPool
-import cv2
 import numpy as np
-import copy
 
 
 class LayerFactory:
@@ -53,7 +52,7 @@ class LayerFactory:
                 for x in tmp:
                     self.getLayers(x)
 
-        #self.joinLayers()
+        # self.joinLayers()
         return self.layers
 
     def getLayers(self, data):
@@ -150,14 +149,11 @@ class LayerFactory:
         for l in layers:
             if l.lastFrame < maxFrame:
                 maxFrame = l.lastFrame
-
         return maxFrame
 
     def contoursOverlay(self, l1, r1, l2, r2):
-        # If one rectangle is on left side of other
         if(l1[0] >= r2[0] or l2[0] >= r1[0]):
             return False
-        # If one rectangle is above other
         if(l1[1] <= r2[1] or l2[1] <= r1[1]):
             return False
         return True

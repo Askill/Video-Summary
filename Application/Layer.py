@@ -39,8 +39,8 @@ class Layer:
             return
         if frameNumber > self.lastFrame:
             for i in range(frameNumber - self.lastFrame):
-                self.bounds.append([bound])
-                self.masks.append([mask])
+                self.bounds.append([])
+                self.masks.append([])
             self.lastFrame = frameNumber
 
         if bound not in self.bounds[index]:

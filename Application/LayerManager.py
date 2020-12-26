@@ -48,26 +48,6 @@ class LayerManager:
         for layer in self.layers:
             layer.calcStats()
 
-    def removeStaticLayers(self):
-        '''Removes Layers with little to no movement'''
-        layers = []
-        for i, layer in enumerate(self.layers):
-            checks = 0
-            for bound in layer.bounds[0]:
-                if bound[0] is None:
-                    continue
-                for bound2 in layer.bounds[-1]:
-                    if bound2[0] is None:
-                        continue
-                    if abs(bound[0] - bound2[0]) < 10:
-                        checks += 1
-                    if abs(bound[1] - bound2[1]) < 10:
-                        checks += 1
-            if checks <= 2:
-                layers.append(layer)
-        self.layers = layers
-
-
     def freeMin(self):
         self.data.clear()
         layers = []
@@ -76,21 +56,19 @@ class LayerManager:
                 layers.append(l) 
         self.layers = layers
         
-    
     def freeMax(self):
         layers = []
         for l in self.layers:
             if len(l) < self.maxLayerLength:
                 layers.append(l) 
         self.layers = layers
-        
 
     def tagLayers(self):
         '''Use classifieres the tag all Layers, by reading the contour content from the original video, then applying the classifier'''
         print("Tagging Layers")
         exporter = Exporter(self.config)
         start = time.time()
-        for i, layer in enumerate(self.layers[20:]):
+        for i, layer in enumerate(self.layers):
             print(f"{round(i/len(self.layers)*100,2)} {round((time.time() - start), 2)}")
             start = time.time()
             if len(layer.bounds[0]) == 0:

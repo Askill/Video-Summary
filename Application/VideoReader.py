@@ -1,28 +1,26 @@
-
-import multiprocessing
-import cv2
-from time import sleep
-from queue import Queue
-import threading
-import pathlib
 from Application.Config import Config
-import os
+
 from datetime import datetime
+from queue import Queue
+
+import cv2
+import threading
+import os
 
 class VideoReader:
     listOfFrames = None
     w = 0
     h = 0
 
-    def __init__(self, config, setOfFrames = None):
+    def __init__(self, config, setOfFrames=None):
         videoPath = config["inputPath"]
         if videoPath is None:
-            print("ERROR: Video reader needs a videoPath!")
-            return None
+            raise Exception("ERROR: Video reader needs a videoPath!")
 
         self.videoPath = videoPath
         self.lastFrame = 0
-        #buffer = Queue([(frameNumber, frame), ])
+        # buffer data struct:
+        # buffer = Queue([(frameNumber, frame), ])
         self.buffer = Queue(config["videoBufferLength"])
         self.vc = cv2.VideoCapture(videoPath)
         self.stopped = False
@@ -31,7 +29,7 @@ class VideoReader:
         self.calcLength()
         self.calcStartTime()
         if setOfFrames is not None:
-            self.listOfFrames = sorted(setOfFrames)      
+            self.listOfFrames = sorted(setOfFrames)
 
     def getWH(self):
         '''get width and height'''
@@ -44,14 +42,13 @@ class VideoReader:
         return self.buffer.get(block=True)
 
     def fillBuffer(self, listOfFrames=None):
-        if self.buffer.full():
-            print("VideoReader::fillBuffer was called when buffer was full.")
         self.endFrame = int(self.vc.get(cv2.CAP_PROP_FRAME_COUNT))
         if listOfFrames is not None:
             self.listOfFrames = listOfFrames
-            
+
         if self.listOfFrames is not None:
-            self.thread = threading.Thread(target=self.readFramesByList, args=())
+            self.thread = threading.Thread(
+                target=self.readFramesByList, args=())
         else:
             self.thread = threading.Thread(target=self.readFrames, args=())
         self.thread.start()
@@ -69,7 +66,7 @@ class VideoReader:
             self.lastFrame += 1
 
         self.stopped = True
-    
+
     def readFramesByList(self):
         '''Reads all frames from a list of frame numbers'''
         self.vc.set(1, self.listOfFrames[0])
@@ -91,9 +88,9 @@ class VideoReader:
                 # if current Frame number is not in list of Frames, we can skip a few frames
                 self.vc.set(1, self.listOfFrames[0])
                 self.lastFrame = self.listOfFrames[0]
-        
+
         self.stopped = True
-    
+
     def videoEnded(self):
         if self.stopped and self.buffer.empty():
             return True
@@ -107,7 +104,7 @@ class VideoReader:
         if self.fps is None:
             self.calcFPS()
         return self.fps
-    
+
     def calcLength(self):
         fc = int(self.vc.get(cv2.CAP_PROP_FRAME_COUNT))
         self.length = fc / self.getFPS()
