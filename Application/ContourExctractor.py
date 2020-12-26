@@ -30,7 +30,6 @@ class ContourExtractor:
     def getExtractedMasks(self):
         return self.extractedMasks
 
-
     def __init__(self, config):
         self.frameBuffer = Queue(16)
         self.extractedContours = dict()

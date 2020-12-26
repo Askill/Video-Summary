@@ -12,7 +12,6 @@ from Application.Classifiers import *
 
 def main():
     startTotal = time.time()
-    start = startTotal
     config = Config()
 
     fileName = "x23.mp4"
@@ -21,14 +20,11 @@ def main():
 
     config["inputPath"] = os.path.join(dirName, fileName)
     config["outputPath"]  = os.path.join(outputPath, fileName)
-
     config["importPath"] = os.path.join(outputPath, fileName.split(".")[0] + ".txt")
-
     config["w"], config["h"] = VideoReader(config).getWH()
 
     if not os.path.exists(config["importPath"]):
         contours, masks = ContourExtractor(config).extractContours()
-
         layerFactory = LayerFactory(config)
         layers = layerFactory.extractLayers(contours, masks)
     else:
@@ -48,9 +44,7 @@ def main():
     exporter = Exporter(config)
     print(f"Exporting {len(contours)} Contours and {len(layers)} Layers")
     exporter.export(layers, contours, masks, raw=True, overlayed=True)
-
     print("Total time: ", time.time() - startTotal)
-    exit(0)
 
 if __name__ == "__main__":
     main()
