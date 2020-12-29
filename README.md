@@ -3,7 +3,7 @@
 
 ## Example:
 ![docs/demo.gif](./docs/demo.gif)  
-What you see above is a 15 second exerpt of a 2 minute overlayed synopsis of a 2.5h video from an on campus web cam.  
+What you see above is a 15 second excerpt of a 2 minute overlayed synopsis of a 2.5h video from an on campus web cam.  
 The synopsis took 40 minutes from start to finish on a 8 core machine and used a maximum of 6Gb of RAM.
 
 However since the contour extraction could be performed on a video stream, the benchmark results show that a single core would be enough to process a video faster than real time.
