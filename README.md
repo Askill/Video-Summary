@@ -1,5 +1,5 @@
 
-# Video Synopsis and Classification
+# Video Summary and Classification
 
 ## Example:
 ![docs/demo.gif](./docs/demo.gif)  
