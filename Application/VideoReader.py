@@ -1,6 +1,3 @@
-from Application.Config import Config
-
-from datetime import datetime
 from queue import Queue
 
 import cv2
@@ -9,14 +6,13 @@ import os
 
 class VideoReader:
     listOfFrames = None
-    w = 0
-    h = 0
+    w = None
+    h = None
 
     def __init__(self, config, setOfFrames=None):
         videoPath = config["inputPath"]
         if videoPath is None:
             raise Exception("ERROR: Video reader needs a videoPath!")
-
         self.videoPath = videoPath
         self.lastFrame = 0
         # buffer data struct:
@@ -30,13 +26,17 @@ class VideoReader:
         self.calcStartTime()
         if setOfFrames is not None:
             self.listOfFrames = sorted(setOfFrames)
+        
+    def __enter__(self):
+        self.fillBuffer()
+        return self
 
-    def getWH(self):
-        '''get width and height'''
-        res, image = self.vc.read()
-        self.w = image.shape[1]
-        self.h = image.shape[0]
-        return (self.w, self.h)
+    def __exit__(self, type, value, traceback):
+        self.stop()
+
+    def stop(self):
+        self.thread.join()
+        self.vc.release()
 
     def pop(self):
         return self.buffer.get(block=True)
@@ -52,10 +52,6 @@ class VideoReader:
         else:
             self.thread = threading.Thread(target=self.readFrames, args=())
         self.thread.start()
-
-    def stop(self):
-        self.thread.join()
-        self.vc.release()
 
     def readFrames(self):
         '''Reads video from start to finish'''
@@ -122,3 +118,11 @@ class VideoReader:
 
     def getStartTime(self):
         return self.starttime
+
+    def getWH(self):
+        '''get width and height'''
+        if self.w is None or self.h is None:
+            res, image = self.vc.read()
+            self.w = image.shape[1]
+            self.h = image.shape[0]
+        return (self.w, self.h)
