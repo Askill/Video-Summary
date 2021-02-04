@@ -1,13 +1,15 @@
 import os
 import time
+
+from Application.Classifiers import *
+from Application.Config import Config
 from Application.ContourExctractor import ContourExtractor
 from Application.Exporter import Exporter
-from Application.LayerFactory import LayerFactory
-from Application.Config import Config
 from Application.Importer import Importer
-from Application.VideoReader import VideoReader
+from Application.LayerFactory import LayerFactory
 from Application.LayerManager import LayerManager
-from Application.Classifiers import *
+from Application.VideoReader import VideoReader
+
 
 def main():
     startTotal = time.time()
@@ -18,8 +20,9 @@ def main():
     dirName = os.path.join(os.path.dirname(__file__), "generate test footage")
 
     config["inputPath"] = os.path.join(dirName, fileName)
-    config["outputPath"]  = os.path.join(outputPath, fileName)
-    config["importPath"] = os.path.join(outputPath, fileName.split(".")[0] + ".txt")
+    config["outputPath"] = os.path.join(outputPath, fileName)
+    config["importPath"] = os.path.join(
+        outputPath, fileName.split(".")[0] + ".txt")
     config["w"], config["h"] = VideoReader(config).getWH()
 
     if not os.path.exists(config["importPath"]):
@@ -44,7 +47,6 @@ def main():
     exporter.export(layers, contours, masks, raw=True, overlayed=True)
     print("Total time: ", time.time() - startTotal)
 
+
 if __name__ == "__main__":
     main()
-
-
