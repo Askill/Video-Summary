@@ -81,4 +81,38 @@ class Layer:
     def __len__(self):
         self.length = len(self.bounds)
         return self.length
+
+    def spaceOverlaps(self, layer2):
+        '''Checks if there is an overlap in the bounds of current layer with given layer'''
+        overlap = False
+        maxLen = min(len(layer2.bounds), len(self.bounds))
+        bounds = self.bounds[:maxLen]
+        for b1s, b2s in zip(bounds, layer2.bounds[:maxLen]):
+            for b1 in b1s:
+                for b2 in b2s:
+                    if self.contoursOverlay((b1[0], b1[1]+b1[3]), (b1[0]+b1[2], b1[1]), (b2[0], b2[1]+b2[3]), (b2[0]+b2[2], b2[1])):
+                        overlap = True
+                        break
+        return overlap
+    
+    def timeOverlaps(self, layer2):
+        '''Checks for overlap in time between current and given layer'''
+        s1 = self.startFrame
+        e1 = self.lastFrame
+        s2 = layer2.startFrame
+        e2 = layer2.lastFrame
+
+        if s2 >= s1 and s2 <= e1:
+            return True
+        elif s1 >= s2 and s1 <= e2:
+            return True
+        else:
+            return False
+
+    def contoursOverlay(self, l1, r1, l2, r2):
+        if(l1[0] >= r2[0] or l2[0] >= r1[0]):
+            return False
+        if(l1[1] <= r2[1] or l2[1] <= r1[1]):
+            return False
+        return True
    

@@ -31,6 +31,7 @@ class LayerManager:
         self.freeMax()
         self.sortLayers()     
         self.calcStats()
+        print("Before deleting sparse layers ", len(self.layers))
         self.deleteSparse()
         print("after deleting sparse layers ", len(self.layers))
 
@@ -38,7 +39,7 @@ class LayerManager:
         toDelete = []
         for i, l in enumerate(self.layers):
             empty = l.bounds.count([])
-            if empty / len(l) > 0.2:
+            if empty / len(l) > 0.5:
                 toDelete.append(i)
 
         for i, id in enumerate(toDelete):

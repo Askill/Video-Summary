@@ -5,7 +5,7 @@ from Application.Exporter import Exporter
 
 from multiprocessing.pool import ThreadPool
 import numpy as np
-
+import os
 
 class LayerFactory:
     def __init__(self, config, data=None):
@@ -36,7 +36,7 @@ class LayerFactory:
 
         self.oldLayerIDs = []
 
-        with ThreadPool(16) as pool:
+        with ThreadPool(os.cpu_count()) as pool:
             for frameNumber in sorted(data.keys()):
                 contours = data[frameNumber]
                 masks = maskArr[frameNumber]

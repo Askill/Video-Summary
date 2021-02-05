@@ -1,7 +1,7 @@
 from Application.VideoReader import VideoReader
 from Application.Config import Config
 
-from threading import Thread
+from threading import Thread, activeCount
 from multiprocessing import Queue, Process, Pool
 from multiprocessing.pool import ThreadPool
 from queue import Queue
@@ -9,6 +9,7 @@ import imutils
 import time
 import cv2
 import numpy as np
+import os
 
 class ContourExtractor:
 
@@ -64,7 +65,7 @@ class ContourExtractor:
         return self.extractedContours, self.extractedMasks
 
     def async2(self, tmpData):
-        with ThreadPool(16) as pool2:
+        with ThreadPool(os.cpu_count()) as pool2:
             pool2.map(self.getContours, tmpData)
 
     def getContours(self, data):
@@ -76,7 +77,7 @@ class ContourExtractor:
 
         if frameCount % (10*self.fps) == 1:
             print(
-                f" \r {round((frameCount/self.fps)/self.length, 4)*100} % processed in {round(time.time() - self.start, 2)}s", end='\r')
+                f" \r \033[K {round((frameCount/self.fps)*100/self.length, 2)} % processed in {round(time.time() - self.start, 2)}s", end='\r')
 
         gray = self.prepareFrame(frame)
         frameDelta = cv2.absdiff(gray, firstFrame)
@@ -132,7 +133,7 @@ class ContourExtractor:
 
         tmp = [[j, frames, averageFrames]
                for j in range(averageFrames, len(frames))]
-        with ThreadPool(16) as pool:
+        with ThreadPool(os.cpu_count()) as pool:
             pool.map(self.averageDaFrames, tmp)
 
         self.lastFrames = frames[-averageFrames:]

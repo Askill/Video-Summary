@@ -15,7 +15,7 @@ def main():
     startTotal = time.time()
     config = Config()
 
-    fileName = "out.mp4"
+    fileName = "x23-1.mp4"
     outputPath = os.path.join(os.path.dirname(__file__), "output")
     dirName = os.path.join(os.path.dirname(__file__), "generate test footage")
 

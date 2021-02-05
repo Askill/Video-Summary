@@ -6,7 +6,7 @@ import imutils
 import numpy as np
 import cv2
 import pickle
-import time
+import time 
 
 
 class Exporter:
@@ -28,7 +28,7 @@ class Exporter:
             self.exportLayers(layers)
 
     def exportLayers(self, layers):
-
+        # TODO: fix videoreader instanciation
         listOfFrames = self.makeListOfFrames(layers)
         videoReader = VideoReader(self.config, listOfFrames)
         videoReader.fillBuffer()
@@ -62,9 +62,9 @@ class Exporter:
 
                     frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
 
-                    time = datetime.fromtimestamp(
+                    timestr = datetime.fromtimestamp(
                         int(frameCount/self.fps) + videoReader.getStartTime())
-                    cv2.putText(frame2, str(i) + "  " + f"{time.hour}:{time.minute}:{time.second}", (int(
+                    cv2.putText(frame2, str(i) + "  " + f"{timestr.hour}:{timestr.minute}:{timestr.second}", (int(
                         x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                 #cv2.putText(frame2, str(layer.stats["avg"]) + "  " + str(layer.stats["var"]) + "  " + str(layer.stats["dev"]), (int(500), int(500)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255), 2)
                 writer.append_data(frame2)
