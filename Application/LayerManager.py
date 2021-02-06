@@ -34,6 +34,7 @@ class LayerManager:
         print("Before deleting sparse layers ", len(self.layers))
         self.deleteSparse()
         print("after deleting sparse layers ", len(self.layers))
+        self.calcTimeOffset()
 
     def deleteSparse(self):
         toDelete = []
@@ -101,3 +102,22 @@ class LayerManager:
 
     def sortLayers(self):
         self.layers.sort(key = lambda c:c.startFrame)
+
+    def calcTimeOffset(self):
+        for i, layer in enumerate(self.layers):
+            overlap = True
+            while overlap:
+                overlap = False
+                for l in self.layers[i:]:
+                    if layer.timeOverlaps(l):
+                        if layer.spaceOverlaps(l):
+                            overlap = True
+                if overlap:
+                    self.addDelay(i, 10)
+                    
+                if self.layers[i].exportOffset >= 180:
+                    break
+
+    def addDelay(self, index, frames):
+        for layer in self.layers[index:]:
+            layer.exportOffset += frames

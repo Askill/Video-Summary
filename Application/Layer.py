@@ -27,6 +27,7 @@ class Layer:
         self.bounds = []
         self.masks = []
         self.stats = dict()
+        self.exportOffset = 0
 
         self.bounds.append([data])
         self.masks.append([mask])
