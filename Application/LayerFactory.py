@@ -125,7 +125,7 @@ class LayerFactory:
                                     merge.add(indexes[lc2])
             merge = list(merge)
             if len(merge) > 1:
-                self.mergeLayers(megre)
+                self.mergeLayers(merge)
             i = innerMax
 
     def getPossibleLayers(self, t):

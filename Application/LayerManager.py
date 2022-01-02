@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import time
 
+
 class LayerManager:
     def __init__(self, config, layers):
         self.data = {}
@@ -29,7 +30,7 @@ class LayerManager:
         self.freeMin()
         print("Before deleting long layers ", len(self.layers))
         self.freeMax()
-        self.sortLayers()     
+        self.sortLayers()
         self.calcStats()
         print("Before deleting sparse layers ", len(self.layers))
         self.deleteSparse()
@@ -55,14 +56,14 @@ class LayerManager:
         layers = []
         for l in self.layers:
             if len(l) > self.minLayerLength:
-                layers.append(l) 
+                layers.append(l)
         self.layers = layers
-        
+
     def freeMax(self):
         layers = []
         for l in self.layers:
             if len(l) < self.maxLayerLength:
-                layers.append(l) 
+                layers.append(l)
         self.layers = layers
 
     def tagLayers(self):
@@ -71,7 +72,8 @@ class LayerManager:
         exporter = Exporter(self.config)
         start = time.time()
         for i, layer in enumerate(self.layers):
-            print(f"{round(i/len(self.layers)*100,2)} {round((time.time() - start), 2)}")
+            print(
+                f"{round(i/len(self.layers)*100,2)} {round((time.time() - start), 2)}")
             start = time.time()
             if len(layer.bounds[0]) == 0:
                 continue
@@ -101,23 +103,22 @@ class LayerManager:
             videoReader.thread.join()
 
     def sortLayers(self):
-        self.layers.sort(key = lambda c:c.startFrame)
+        self.layers.sort(key=lambda c: c.startFrame)
 
     def calcTimeOffset(self):
+        lenL = len(self.layers)
         for i, layer in enumerate(self.layers):
+            print(
+                f"\r {i}/{lenL}", end='\r')
             overlap = True
             while overlap:
                 overlap = False
-                for l in self.layers[i:]:
-                    if layer.timeOverlaps(l):
-                        if layer.spaceOverlaps(l):
-                            overlap = True
+                for l in self.layers[:i:-1]:
+                    if layer.timeOverlaps(l) and layer.spaceOverlaps(l):
+                        overlap = True
+                        break
                 if overlap:
-                    self.addDelay(i, 10)
-                    
-                if self.layers[i].exportOffset >= 180:
-                    break
+                    self.layers[i].exportOffset += 20
 
-    def addDelay(self, index, frames):
-        for layer in self.layers[index:]:
-            layer.exportOffset += frames
+                if self.layers[i].exportOffset >= 30000:
+                    break
