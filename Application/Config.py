@@ -12,7 +12,7 @@ class Config:
         "tolerance": 20,
         "maxLength": None,
         "ttolerance": 60,
-        "videoBufferLength": 450,
+        "videoBufferLength": 250,
         "LayersPerContour": 220,
         "avgNum":10
         }

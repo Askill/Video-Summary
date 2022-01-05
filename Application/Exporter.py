@@ -116,17 +116,17 @@ class Exporter:
                             mask = np.resize(mask, (h, w))
                             mask = cv2.erode(mask, None, iterations=10)
                             mask *= 255
-                            frame2 = frames[frameCount - layer.startFrame]
+                            frame2 = frames[frameCount - layer.startFrame + layer.exportOffset]
                             xx = np.copy(cv2.bitwise_and(
                                 frame2[y:y+h, x:x+w], frame2[y:y+h, x:x+w], mask=cv2.bitwise_not(mask)))
                             frame2[y:y+h, x:x+w] = cv2.addWeighted(xx, 1, np.copy(
                                 cv2.bitwise_and(frame[y:y+h, x:x+w], frame[y:y+h, x:x+w], mask=mask)), 1, 0)
-                            frames[frameCount - layer.startFrame] = np.copy(frame2)
+                            frames[frameCount - layer.startFrame + layer.exportOffset] = np.copy(frame2)
                             #cv2.imshow("changes x", frame2)
                             #cv2.waitKey(10) & 0XFF
                             time = datetime.fromtimestamp(
                                 int(frameCount/self.fps) + videoReader.getStartTime())
-                            cv2.putText(frames[frameCount - layer.startFrame], f"{time.hour}:{time.minute}:{time.second}", (int(
+                            cv2.putText(frames[frameCount - layer.startFrame + layer.exportOffset], f"{time.hour}:{time.minute}:{time.second}", (int(
                                 x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
                         except:
                             continue

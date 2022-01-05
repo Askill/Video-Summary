@@ -77,7 +77,7 @@ class Layer:
         
 
     def getLength(self):
-        return len(self)
+        return len(self) + self.exportOffset
 
     def __len__(self):
         self.length = len(self.bounds)
