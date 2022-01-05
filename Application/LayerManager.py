@@ -107,10 +107,12 @@ class LayerManager:
 
     def calcTimeOffset(self):
         lenL = len(self.layers)
-        for i, layer in enumerate(self.layers):
+        for i in range(1, len(self.layers)):
+            layer = self.layers[i]
             print(
                 f"\r {i}/{lenL}", end='\r')
             overlap = True
+            tries = 1
             while overlap:
                 overlap = False
                 for l in self.layers[:i:-1]:
@@ -118,7 +120,8 @@ class LayerManager:
                         overlap = True
                         break
                 if overlap:
-                    self.layers[i].exportOffset += 20
+                    self.layers[i].exportOffset += 20 * tries
+                    tries += 1
 
-                if self.layers[i].exportOffset >= 30000:
+                if self.layers[i].exportOffset >= 300000:
                     break

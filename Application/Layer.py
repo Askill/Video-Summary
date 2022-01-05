@@ -100,7 +100,7 @@ class Layer:
         '''Checks for overlap in time between current and given layer'''
         s1 = self.exportOffset
         e1 = self.lastFrame - self.startFrame + self.exportOffset
-        s2 = self.exportOffset
+        s2 = layer2.exportOffset
         e2 = layer2.lastFrame - layer2.startFrame + self.exportOffset
 
         if s2 >= s1 and s2 <= e1:
