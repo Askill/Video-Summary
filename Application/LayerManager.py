@@ -123,5 +123,5 @@ class LayerManager:
                     self.layers[i].exportOffset += 20 * tries
                     tries += 1
 
-                if self.layers[i].exportOffset >= 300000:
-                    break
+                #if self.layers[i].exportOffset >= 300000:
+                #    break
