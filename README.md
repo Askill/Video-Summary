@@ -8,6 +8,10 @@ The synopsis took 40 minutes from start to finish on a 8 core machine and used a
 
 However since the contour extraction could be performed on a video stream, the benchmark results show that a single core would be enough to process a video faster than real time.
 
+## Heatmap
+![](./docs/heatmap_x23.png)  
+
+
 ## Benchmark
 Below you can find the benchmark results for a 10 minutes clip, with the stacked time per component on the x-axis.  
 The tests were done on a machine with a Ryzen 3700X with 8 cores 16 threads and 32 Gb of RAM.  
@@ -22,6 +26,7 @@ On my configuration 1 minutes of of the original Video can be processed in about
 
 
 
-#### notes:
+### notes:
+optional:
 
 install tensorflow==1.15.0 and tensorflow-gpu==1.15.0, cuda 10.2 and 10.0, copy missing files from 10.0 to 10.2, restart computer, set maximum vram
