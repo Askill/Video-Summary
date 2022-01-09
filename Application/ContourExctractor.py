@@ -11,6 +11,7 @@ import cv2
 import numpy as np
 import os
 
+
 class ContourExtractor:
 
     # extracedContours = {frame_number: [(contour, (x,y,w,h)), ...], }
@@ -51,10 +52,9 @@ class ContourExtractor:
         with ThreadPool(2) as pool:
             while not videoReader.videoEnded():
                 if videoReader.buffer.qsize() == 0:
-                    time.sleep(.5)
+                    time.sleep(0.5)
 
-                tmpData = [videoReader.pop()
-                           for i in range(0, videoReader.buffer.qsize())]
+                tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
                 pool.map(self.computeMovingAverage, (tmpData,))
                 pool.map(self.async2, (tmpData,))
                 # for data in tmpData:
@@ -75,20 +75,20 @@ class ContourExtractor:
             time.sleep(0.1)
         firstFrame = self.averages.pop(frameCount, None)
 
-        if frameCount % (10*self.fps) == 1:
+        if frameCount % (10 * self.fps) == 1:
             print(
-                f" \r \033[K {round((frameCount/self.fps)*100/self.length, 2)} % processed in {round(time.time() - self.start, 2)}s", end='\r')
+                f" \r \033[K {round((frameCount/self.fps)*100/self.length, 2)} % processed in {round(time.time() - self.start, 2)}s",
+                end="\r",
+            )
 
         gray = self.prepareFrame(frame)
         frameDelta = cv2.absdiff(gray, firstFrame)
-        thresh = cv2.threshold(frameDelta, self.threashold,
-                               255, cv2.THRESH_BINARY)[1]
+        thresh = cv2.threshold(frameDelta, self.threashold, 255, cv2.THRESH_BINARY)[1]
         # dilate the thresholded image to fill in holes, then find contours
         thresh = cv2.dilate(thresh, None, iterations=10)
-        #cv2.imshow("changes x", thresh)
-        #cv2.waitKey(10) & 0XFF
-        cnts = cv2.findContours(
-            thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # cv2.imshow("changes x", thresh)
+        # cv2.waitKey(10) & 0XFF
+        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
 
         contours = []
@@ -101,7 +101,7 @@ class ContourExtractor:
             contours.append((x, y, w, h))
             # the mask has to be packed like this, since np doesn't have a bit array,
             # meaning every bit in the mask would take up 8bits, which migth be too much
-            masks.append(np.packbits(np.copy(thresh[y:y+h, x:x+w]), axis=0))
+            masks.append(np.packbits(np.copy(thresh[y : y + h, x : x + w]), axis=0))
 
         if len(contours) != 0 and contours is not None:
             # this should be thread safe
@@ -131,8 +131,7 @@ class ContourExtractor:
         if self.lastFrames is not None:
             frames = self.lastFrames + frames
 
-        tmp = [[j, frames, averageFrames]
-               for j in range(averageFrames, len(frames))]
+        tmp = [[j, frames, averageFrames] for j in range(averageFrames, len(frames))]
         with ThreadPool(os.cpu_count()) as pool:
             pool.map(self.averageDaFrames, tmp)
 
@@ -143,7 +142,7 @@ class ContourExtractor:
         frameNumber, frame = frames[j]
         frame = self.prepareFrame(frame)
 
-        avg = frame/averageFrames
-        for jj in range(0, averageFrames-1):
-            avg += self.prepareFrame(frames[j-jj][1])/averageFrames
+        avg = frame / averageFrames
+        for jj in range(0, averageFrames - 1):
+            avg += self.prepareFrame(frames[j - jj][1]) / averageFrames
         self.averages[frameNumber] = np.array(np.round(avg), dtype=np.uint8)

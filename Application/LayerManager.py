@@ -20,7 +20,7 @@ class LayerManager:
         self.resizeWidth = config["resizeWidth"]
         self.footagePath = config["inputPath"]
         self.config = config
-        #self.classifier = Classifier()
+        # self.classifier = Classifier()
         self.tags = []
         print("LayerManager constructed")
 
@@ -67,13 +67,12 @@ class LayerManager:
         self.layers = layers
 
     def tagLayers(self):
-        '''Use classifieres the tag all Layers, by reading the contour content from the original video, then applying the classifier'''
+        """Use classifieres the tag all Layers, by reading the contour content from the original video, then applying the classifier"""
         print("Tagging Layers")
         exporter = Exporter(self.config)
         start = time.time()
         for i, layer in enumerate(self.layers):
-            print(
-                f"{round(i/len(self.layers)*100,2)} {round((time.time() - start), 2)}")
+            print(f"{round(i/len(self.layers)*100,2)} {round((time.time() - start), 2)}")
             start = time.time()
             if len(layer.bounds[0]) == 0:
                 continue
@@ -94,7 +93,7 @@ class LayerManager:
                     y = int(y * factor)
                     w = int(w * factor)
                     h = int(h * factor)
-                    data.append(np.copy(frame[y:y+h, x:x+w]))
+                    data.append(np.copy(frame[y : y + h, x : x + w]))
                 layer.data.append(data)
             tags = self.classifier.tagLayer(layer.data)
             print(tags)
@@ -109,8 +108,7 @@ class LayerManager:
         lenL = len(self.layers)
         for i in range(1, len(self.layers)):
             layer = self.layers[i]
-            print(
-                f"\r {i}/{lenL}", end='\r')
+            print(f"\r {i}/{lenL}", end="\r")
             overlap = True
             tries = 1
             while overlap:
@@ -123,5 +121,5 @@ class LayerManager:
                     self.layers[i].exportOffset += 20 * tries
                     tries += 1
 
-                #if self.layers[i].exportOffset >= 300000:
+                # if self.layers[i].exportOffset >= 300000:
                 #    break

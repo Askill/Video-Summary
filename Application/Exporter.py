@@ -7,7 +7,7 @@ import imutils
 import numpy as np
 import cv2
 import pickle
-import time 
+import time
 
 
 class Exporter:
@@ -43,8 +43,7 @@ class Exporter:
 
         start = time.time()
         for i, layer in enumerate(layers):
-            print(
-                f"\r {i}/{len(layers)} {round(i/len(layers)*100,2)}% {round((time.time() - start), 2)}s", end='\r')
+            print(f"\r {i}/{len(layers)} {round(i/len(layers)*100,2)}% {round((time.time() - start), 2)}s", end="\r")
             if len(layer.bounds[0]) == 0:
                 continue
             videoReader = VideoReader(self.config)
@@ -58,16 +57,21 @@ class Exporter:
                     if x is None:
                         continue
                     factor = videoReader.w / self.resizeWidth
-                    x, y, w, h = (int(x * factor), int(y * factor),
-                                  int(w * factor), int(h * factor))
+                    x, y, w, h = (int(x * factor), int(y * factor), int(w * factor), int(h * factor))
 
-                    frame2[y:y+h, x:x+w] = np.copy(frame[y:y+h, x:x+w])
+                    frame2[y : y + h, x : x + w] = np.copy(frame[y : y + h, x : x + w])
 
-                    timestr = datetime.fromtimestamp(
-                        int(frameCount/self.fps) + videoReader.getStartTime())
-                    cv2.putText(frame2, str(i) + "  " + f"{timestr.hour}:{timestr.minute}:{timestr.second}", (int(
-                        x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-                #cv2.putText(frame2, str(layer.stats["avg"]) + "  " + str(layer.stats["var"]) + "  " + str(layer.stats["dev"]), (int(500), int(500)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255), 2)
+                    timestr = datetime.fromtimestamp(int(frameCount / self.fps) + videoReader.getStartTime())
+                    cv2.putText(
+                        frame2,
+                        str(i) + "  " + f"{timestr.hour}:{timestr.minute}:{timestr.second}",
+                        (int(x + w / 2), int(y + h / 2)),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        1,
+                        (255, 255, 255),
+                        2,
+                    )
+                # cv2.putText(frame2, str(layer.stats["avg"]) + "  " + str(layer.stats["var"]) + "  " + str(layer.stats["dev"]), (int(500), int(500)), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,0,255), 2)
                 writer.append_data(frame2)
             videoReader.vc.release()
             videoReader.thread.join()
@@ -83,7 +87,7 @@ class Exporter:
         maxLength = self.getMaxLengthOfLayers(layers)
         underlay = cv2.VideoCapture(self.footagePath).read()[1]
         underlay = cv2.cvtColor(underlay, cv2.COLOR_BGR2RGB)
-        #underlay = np.zeros(shape=[videoReader.h, videoReader.w, 3], dtype=np.uint8)
+        # underlay = np.zeros(shape=[videoReader.h, videoReader.w, 3], dtype=np.uint8)
         frames = []
         for i in range(maxLength):
             frames.append(np.copy(underlay))
@@ -91,8 +95,8 @@ class Exporter:
 
         while not videoReader.videoEnded():
             frameCount, frame = videoReader.pop()
-            if frameCount % (60*self.fps) == 0:
-                print("Minutes processed: ", frameCount/(60*self.fps), end="\r")
+            if frameCount % (60 * self.fps) == 0:
+                print("Minutes processed: ", frameCount / (60 * self.fps), end="\r")
             if frame is None:
                 print("ContourExtractor: frame was None")
                 continue
@@ -103,31 +107,45 @@ class Exporter:
                     for i in range(0, len(layer.bounds[frameCount - layer.startFrame])):
                         try:
                             underlay1 = underlay
-                            (x, y, w,
-                            h) = layer.bounds[frameCount - layer.startFrame][i]
+                            (x, y, w, h) = layer.bounds[frameCount - layer.startFrame][i]
                             mask = layer.masks[frameCount - layer.startFrame][i]
                             if x is None:
                                 break
                             factor = videoReader.w / self.resizeWidth
-                            x, y, w, h = (int(x * factor), int(y * factor),
-                                        int(w * factor), int(h * factor))
+                            x, y, w, h = (int(x * factor), int(y * factor), int(w * factor), int(h * factor))
 
-                            mask = imutils.resize(mask, width=w, height=h+1)
+                            mask = imutils.resize(mask, width=w, height=h + 1)
                             mask = np.resize(mask, (h, w))
                             mask = cv2.erode(mask, None, iterations=10)
                             mask *= 255
                             frame2 = frames[frameCount - layer.startFrame + layer.exportOffset]
-                            xx = np.copy(cv2.bitwise_and(
-                                frame2[y:y+h, x:x+w], frame2[y:y+h, x:x+w], mask=cv2.bitwise_not(mask)))
-                            frame2[y:y+h, x:x+w] = cv2.addWeighted(xx, 1, np.copy(
-                                cv2.bitwise_and(frame[y:y+h, x:x+w], frame[y:y+h, x:x+w], mask=mask)), 1, 0)
+                            xx = np.copy(
+                                cv2.bitwise_and(
+                                    frame2[y : y + h, x : x + w],
+                                    frame2[y : y + h, x : x + w],
+                                    mask=cv2.bitwise_not(mask),
+                                )
+                            )
+                            frame2[y : y + h, x : x + w] = cv2.addWeighted(
+                                xx,
+                                1,
+                                np.copy(cv2.bitwise_and(frame[y : y + h, x : x + w], frame[y : y + h, x : x + w], mask=mask)),
+                                1,
+                                0,
+                            )
                             frames[frameCount - layer.startFrame + layer.exportOffset] = np.copy(frame2)
-                            #cv2.imshow("changes x", frame2)
-                            #cv2.waitKey(10) & 0XFF
-                            time = datetime.fromtimestamp(
-                                int(frameCount/self.fps) + videoReader.getStartTime())
-                            cv2.putText(frames[frameCount - layer.startFrame + layer.exportOffset], f"{time.hour}:{time.minute}:{time.second}", (int(
-                                x+w/2), int(y+h/2)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+                            # cv2.imshow("changes x", frame2)
+                            # cv2.waitKey(10) & 0XFF
+                            time = datetime.fromtimestamp(int(frameCount / self.fps) + videoReader.getStartTime())
+                            cv2.putText(
+                                frames[frameCount - layer.startFrame + layer.exportOffset],
+                                f"{time.hour}:{time.minute}:{time.second}",
+                                (int(x + w / 2), int(y + h / 2)),
+                                cv2.FONT_HERSHEY_SIMPLEX,
+                                1,
+                                (255, 255, 255),
+                                2,
+                            )
                         except:
                             continue
         videoReader.thread.join()
@@ -153,10 +171,9 @@ class Exporter:
         return maxLength
 
     def makeListOfFrames(self, layers):
-        '''Returns set of all Frames which are relavant to the Layers'''
+        """Returns set of all Frames which are relavant to the Layers"""
         frameNumbers = set()
         for layer in layers:
-            frameNumbers.update(
-                list(range(layer.startFrame, layer.startFrame + len(layer))))
+            frameNumbers.update(list(range(layer.startFrame, layer.startFrame + len(layer))))
 
         return sorted(list(frameNumbers))

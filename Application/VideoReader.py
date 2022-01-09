@@ -4,6 +4,7 @@ import cv2
 import threading
 import os
 
+
 class VideoReader:
     listOfFrames = None
     w = None
@@ -26,7 +27,7 @@ class VideoReader:
         self.calcStartTime()
         if setOfFrames is not None:
             self.listOfFrames = sorted(setOfFrames)
-        
+
     def __enter__(self):
         self.fillBuffer()
         return self
@@ -47,14 +48,13 @@ class VideoReader:
             self.listOfFrames = listOfFrames
 
         if self.listOfFrames is not None:
-            self.thread = threading.Thread(
-                target=self.readFramesByList, args=())
+            self.thread = threading.Thread(target=self.readFramesByList, args=())
         else:
             self.thread = threading.Thread(target=self.readFrames, args=())
         self.thread.start()
 
     def readFrames(self):
-        '''Reads video from start to finish'''
+        """Reads video from start to finish"""
         while self.lastFrame < self.endFrame:
             res, frame = self.vc.read()
             if res:
@@ -64,7 +64,7 @@ class VideoReader:
         self.stopped = True
 
     def readFramesByList(self):
-        '''Reads all frames from a list of frame numbers'''
+        """Reads all frames from a list of frame numbers"""
         self.vc.set(1, self.listOfFrames[0])
         self.lastFrame = self.listOfFrames[0]
         self.endFrame = self.listOfFrames[-1]
@@ -120,7 +120,7 @@ class VideoReader:
         return self.starttime
 
     def getWH(self):
-        '''get width and height'''
+        """get width and height"""
         if self.w is None or self.h is None:
             res, image = self.vc.read()
             self.w = image.shape[1]

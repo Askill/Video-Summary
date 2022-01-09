@@ -22,8 +22,7 @@ def main():
 
     config["inputPath"] = os.path.join(dirName, fileName)
     config["outputPath"] = os.path.join(outputPath, fileName)
-    config["importPath"] = os.path.join(
-        outputPath, fileName.split(".")[0] + ".txt")
+    config["importPath"] = os.path.join(outputPath, fileName.split(".")[0] + ".txt")
     config["w"], config["h"] = VideoReader(config).getWH()
 
     if not os.path.exists(config["importPath"]):
@@ -38,13 +37,12 @@ def main():
     layerManager = LayerManager(config, layers)
     layerManager.transformLayers()
 
-
-    #layerManager.tagLayers()
+    # layerManager.tagLayers()
     layers = layerManager.layers
     if len(layers) == 0:
         exit(1)
 
-    heatmap = HeatMap(1920, 1088, [contour for layer in layers for contour in layer.bounds], 1920/config["resizeWidth"])
+    heatmap = HeatMap(1920, 1088, [contour for layer in layers for contour in layer.bounds], 1920 / config["resizeWidth"])
     heatmap.showImage()
 
     exporter = Exporter(config)

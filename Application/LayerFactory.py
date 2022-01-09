@@ -7,6 +7,7 @@ from multiprocessing.pool import ThreadPool
 import numpy as np
 import os
 
+
 class LayerFactory:
     def __init__(self, config, data=None):
         self.data = {}
@@ -24,7 +25,7 @@ class LayerFactory:
             self.extractLayers(data)
 
     def extractLayers(self, data, maskArr):
-        '''Bundle given contours together into Layer Objects'''
+        """Bundle given contours together into Layer Objects"""
 
         frameNumber = min(data)
         contours = data[frameNumber]
@@ -40,15 +41,15 @@ class LayerFactory:
             for frameNumber in sorted(data.keys()):
                 contours = data[frameNumber]
                 masks = maskArr[frameNumber]
-                masks = [np.unpackbits(mask, axis=0)
-                         for mask, contours in zip(masks, contours)]
+                masks = [np.unpackbits(mask, axis=0) for mask, contours in zip(masks, contours)]
                 if frameNumber % 100 == 0:
                     print(
-                        f" {int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction {len(self.layers)} Layers", end='\r')
+                        f" {int(round(frameNumber/max(data.keys()), 2)*100)}% done with Layer extraction {len(self.layers)} Layers",
+                        end="\r",
+                    )
 
-                tmp = [[frameNumber, contour, mask]
-                       for contour, mask in zip(contours, masks)]
-                #pool.map(self.getLayers, tmp)
+                tmp = [[frameNumber, contour, mask] for contour, mask in zip(contours, masks)]
+                # pool.map(self.getLayers, tmp)
                 for x in tmp:
                     self.getLayers(x)
 
@@ -68,22 +69,20 @@ class LayerFactory:
                 continue
 
             lastXframes = min(40, len(layer))
-            lastBounds = [bound for bounds in layer.bounds[-lastXframes:]
-                          for bound in bounds]
+            lastBounds = [bound for bounds in layer.bounds[-lastXframes:] for bound in bounds]
 
             for j, bounds in enumerate(sorted(lastBounds, reverse=True)):
                 if bounds is None:
                     break
                 (x2, y2, w2, h2) = bounds
-                if self.contoursOverlay((x-tol, y+h+tol), (x+w+tol, y-tol), (x2, y2+h2), (x2+w2, y2)):
+                if self.contoursOverlay((x - tol, y + h + tol), (x + w + tol, y - tol), (x2, y2 + h2), (x2 + w2, y2)):
                     layer.add(frameNumber, (x, y, w, h), mask)
                     foundLayerIDs.add(i)
                     break
 
         foundLayerIDs = sorted(list(foundLayerIDs))
         if len(foundLayerIDs) == 0:
-            self.layers.append(
-                Layer(frameNumber, (x, y, w, h), mask, self.config))
+            self.layers.append(Layer(frameNumber, (x, y, w, h), mask, self.config))
         if len(foundLayerIDs) > 1:
             self.mergeLayers(foundLayerIDs)
 
@@ -118,8 +117,8 @@ class LayerFactory:
                     for lc2, l2 in enumerate(pL):
                         if lc2 == lc:
                             continue
-                        for cnt in l.bounds[x-l.startFrame]:
-                            for cnt2 in l2.bounds[x-l2.startFrame]:
+                        for cnt in l.bounds[x - l.startFrame]:
+                            for cnt2 in l2.bounds[x - l2.startFrame]:
                                 if self.contoursOverlay(cnt, cnt2):
                                     merge.add(indexes[lc])
                                     merge.add(indexes[lc2])
@@ -152,9 +151,9 @@ class LayerFactory:
         return maxFrame
 
     def contoursOverlay(self, l1, r1, l2, r2):
-        if(l1[0] >= r2[0] or l2[0] >= r1[0]):
+        if l1[0] >= r2[0] or l2[0] >= r1[0]:
             return False
-        if(l1[1] <= r2[1] or l2[1] <= r1[1]):
+        if l1[1] <= r2[1] or l2[1] <= r1[1]:
             return False
         return True
 
