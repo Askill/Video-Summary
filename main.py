@@ -5,6 +5,7 @@ from Application.Classifiers import *
 from Application.Config import Config
 from Application.ContourExctractor import ContourExtractor
 from Application.Exporter import Exporter
+from Application.HeatMap import HeatMap
 from Application.Importer import Importer
 from Application.LayerFactory import LayerFactory
 from Application.LayerManager import LayerManager
@@ -37,10 +38,14 @@ def main():
     layerManager = LayerManager(config, layers)
     layerManager.transformLayers()
 
+
     #layerManager.tagLayers()
     layers = layerManager.layers
     if len(layers) == 0:
         exit(1)
+
+    heatmap = HeatMap(1920, 1088, [contour for layer in layers for contour in layer.bounds], 1920/config["resizeWidth"])
+    heatmap.showImage()
 
     exporter = Exporter(config)
     print(f"Exporting {len(contours)} Contours and {len(layers)} Layers")
