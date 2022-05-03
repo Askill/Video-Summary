@@ -24,7 +24,25 @@ On my configuration 1 minutes of of the original Video can be processed in about
 
 ![docs/demo.gif](./docs/bm.jpg)  
 
+### Configuration
 
+./Appliucation/Config.py
+
+        "min_area": 100,            min area in pixels
+        "max_area": 9000000,        max area in pixels
+        "threashold": 6,            luminance difference threashold
+        "resizeWidth": 1000,        video is scaled down internally
+        "inputPath": None,          overwritten in main.py
+        "outputPath": None,         overwritten in main.py
+        "maxLayerLength": 5000,     max langth of Layer
+        "minLayerLength": 10,       min langth of Layer
+        "tolerance": 100,           max distance between contours to be aggragated into layer
+        "maxLength": None,          
+        "ttolerance": 60,           number of frames movement can be apart until a new layer is created
+        "videoBufferLength": 100,   Buffer Length of Video Reader Componenent
+        "LayersPerContour": 220,    number of layers a single contour can belong to
+        "avgNum": 10,               number of images that should be averaged before calculating the difference
+    
 
 ### notes:
 optional:

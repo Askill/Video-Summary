@@ -24,14 +24,13 @@ class LayerManager:
         self.tags = []
         print("LayerManager constructed")
 
-    def transformLayers(self):
+    def cleanLayers(self):
         print("'Cleaning' Layers")
         print("Before deleting short layers ", len(self.layers))
         self.freeMin()
         print("Before deleting long layers ", len(self.layers))
         self.freeMax()
         self.sortLayers()
-        self.calcStats()
         print("Before deleting sparse layers ", len(self.layers))
         self.deleteSparse()
         print("after deleting sparse layers ", len(self.layers))
@@ -46,10 +45,6 @@ class LayerManager:
 
         for i, id in enumerate(toDelete):
             del self.layers[id - i]
-
-    def calcStats(self):
-        for layer in self.layers:
-            layer.calcStats()
 
     def freeMin(self):
         self.data.clear()

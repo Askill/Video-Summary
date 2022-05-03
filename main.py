@@ -16,7 +16,7 @@ def main():
     startTotal = time.time()
     config = Config()
 
-    fileName = "x23.mp4"
+    fileName = "./x23-1.mp4"
     outputPath = os.path.join(os.path.dirname(__file__), "output")
     dirName = os.path.join(os.path.dirname(__file__), "generate test footage")
 
@@ -35,14 +35,14 @@ def main():
         layers = layerFactory.extractLayers(contours, masks)
 
     layerManager = LayerManager(config, layers)
-    layerManager.transformLayers()
+    layerManager.cleanLayers()
 
     # layerManager.tagLayers()
     layers = layerManager.layers
     if len(layers) == 0:
         exit(1)
 
-    heatmap = HeatMap(1920, 1088, [contour for layer in layers for contour in layer.bounds], 1920 / config["resizeWidth"])
+    heatmap = HeatMap(config["w"], config["h"], [contour for layer in layers for contour in layer.bounds], 1920 / config["resizeWidth"])
     heatmap.showImage()
 
     exporter = Exporter(config)
