@@ -30,7 +30,9 @@ def main(config):
     if len(layerManager.layers) == 0:
         exit(1)
 
-    heatmap = HeatMap(config["w"], config["h"], [contour for layer in layerManager.layers for contour in layer.bounds], 1920 / config["resizeWidth"])
+    heatmap = HeatMap(
+        config["w"], config["h"], [contour for layer in layerManager.layers for contour in layer.bounds], 1920 / config["resizeWidth"]
+    )
     heatmap.showImage()
 
     print(f"Exporting {len(contours)} Contours and {len(layerManager.layers)} Layers")

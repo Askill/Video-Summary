@@ -19,7 +19,7 @@ class VideoReader:
         # buffer data struct:
         # buffer = Queue([(frameNumber, frame), ])
         self.buffer = multiprocessing.Queue(config["videoBufferLength"])
-        #self.vc = cv2.VideoCapture(videoPath)
+        # self.vc = cv2.VideoCapture(videoPath)
         self.stopped = False
         self.getWH()
         self.calcFPS()
@@ -90,7 +90,6 @@ class VideoReader:
                 self.lastFrame = self.listOfFrames[0]
         self.buffer.put((self.lastFrame, None))
 
-
     def videoEnded(self):
         if self.stopped and self.buffer.empty():
             return True
@@ -130,5 +129,5 @@ class VideoReader:
             res, image = vc.read()
             self.w = image.shape[1]
             self.h = image.shape[0]
-       
+
         return (self.w, self.h)
