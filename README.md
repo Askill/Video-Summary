@@ -26,7 +26,7 @@ On my configuration 1 minutes of of the original Video can be processed in about
 
 ### Configuration
 
-./Appliucation/Config.py
+./Application/Config.py
 
         "min_area": 100,            min area in pixels
         "max_area": 9000000,        max area in pixels
