@@ -3,3 +3,5 @@ numpy
 imutils
 imageio
 tensorflow
+matplotlib
+imageio-ffmpeg

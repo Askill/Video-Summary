@@ -13,7 +13,6 @@ import os
 
 
 class ContourExtractor:
-
     # extracedContours = {frame_number: [(contour, (x,y,w,h)), ...], }
     # dict with frame numbers as keys and the contour bounds of every contour for that frame
 
@@ -50,11 +49,13 @@ class ContourExtractor:
         self.start = time.time()
         # start a bunch of frames and let them read from the video reader buffer until the video reader reaches EOF
         with ThreadPool(2) as pool:
-            while not videoReader.videoEnded():
-                if videoReader.buffer.qsize() == 0:
+            while True:
+                while not videoReader.videoEnded() and videoReader.buffer.qsize() == 0:
                     time.sleep(0.5)
 
                 tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
+                if videoReader.videoEnded():
+                    break
                 pool.map(self.computeMovingAverage, (tmpData,))
                 pool.map(self.async2, (tmpData,))
                 # for data in tmpData:
@@ -132,7 +133,7 @@ class ContourExtractor:
             frames = self.lastFrames + frames
 
         tmp = [[j, frames, averageFrames] for j in range(averageFrames, len(frames))]
-        with ThreadPool(os.cpu_count()) as pool:
+        with ThreadPool(int(os.cpu_count())) as pool:
             pool.map(self.averageDaFrames, tmp)
 
         self.lastFrames = frames[-averageFrames:]

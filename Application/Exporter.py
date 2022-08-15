@@ -149,7 +149,6 @@ class Exporter:
                         except:
                             continue
         videoReader.thread.join()
-        videoReader.vc.release()
 
         self.fps = videoReader.getFPS()
         fps = self.fps
