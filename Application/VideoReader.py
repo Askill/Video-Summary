@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import queue
 import threading
 
 import cv2
@@ -10,7 +11,7 @@ class VideoReader:
     w = None
     h = None
 
-    def __init__(self, config, setOfFrames=None):
+    def __init__(self, config, setOfFrames=None, multiprocess=False):
         videoPath = config["inputPath"]
         if videoPath is None:
             raise Exception("ERROR: Video reader needs a videoPath!")
@@ -18,8 +19,11 @@ class VideoReader:
         self.lastFrame = 0
         # buffer data struct:
         # buffer = Queue([(frameNumber, frame), ])
-        self.buffer = multiprocessing.Queue(config["videoBufferLength"])
-        # self.vc = cv2.VideoCapture(videoPath)
+        self.multiprocess = multiprocess
+        if multiprocess:
+            self.buffer = multiprocessing.Queue(config["videoBufferLength"])
+        else:
+            self.buffer = queue.Queue(config["videoBufferLength"])
         self.stopped = False
         self.getWH()
         self.calcFPS()
@@ -49,10 +53,16 @@ class VideoReader:
         if listOfFrames is not None:
             self.listOfFrames = listOfFrames
 
-        if self.listOfFrames is not None:
-            self.thread = multiprocessing.Process(target=self.readFramesByList, args=())
+        if self.multiprocess:
+            if self.listOfFrames is not None:
+                self.thread = multiprocessing.Process(target=self.readFramesByList, args=())
+            else:
+                self.thread = multiprocessing.Process(target=self.readFrames, args=())
         else:
-            self.thread = multiprocessing.Process(target=self.readFrames, args=())
+            if self.listOfFrames is not None:
+                self.thread = threading.Thread(target=self.readFramesByList, args=())
+            else:
+                self.thread = threading.Thread(target=self.readFrames, args=())
         self.thread.start()
 
     def readFrames(self):
