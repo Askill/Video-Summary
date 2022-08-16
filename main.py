@@ -43,11 +43,12 @@ def main(config):
 if __name__ == "__main__":
     config = Config()
 
-    fileName = "x23-1.mp4"
+    inputPath = os.path.join(os.path.dirname(__file__), "input/x23-1.mp4")
     outputPath = os.path.join(os.path.dirname(__file__), "output")
-    inputDirPath = os.path.join(os.path.dirname(__file__), "input")
+    
+    fileName = inputPath.split("/")[-1]
 
-    config["inputPath"] = os.path.join(inputDirPath, fileName)
+    config["inputPath"] = inputPath
     config["outputPath"] = os.path.join(outputPath, fileName)
     config["importPath"] = os.path.join(outputPath, fileName.split(".")[0] + ".txt")
     config["w"], config["h"] = VideoReader(config).getWH()
