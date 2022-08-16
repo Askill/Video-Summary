@@ -2,12 +2,14 @@
 # https://github.com/tensorflow/models/blob/master/research/object_detection/object_detection_tutorial.ipynb
 # Tensorflow Object Detection Detector
 
+import json
+import os
+
+import cv2
+import imutils
 import numpy as np
 import tensorflow as tf
-import cv2
-import os
-import json
-import imutils
+
 from Application.Classifiers.ClassifierInterface import ClassifierInterface
 
 

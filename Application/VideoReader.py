@@ -1,8 +1,8 @@
 import multiprocessing
+import os
+import threading
 
 import cv2
-import threading
-import os
 
 
 class VideoReader:
@@ -37,7 +37,6 @@ class VideoReader:
 
     def stop(self):
         self.thread.join()
-        self.vc.release()
 
     def pop(self):
         frameNumber, frame = self.buffer.get(block=True)

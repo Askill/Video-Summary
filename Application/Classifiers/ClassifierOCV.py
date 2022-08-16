@@ -1,8 +1,9 @@
+import json
+import os
+
+import cv2
 import numpy as np
 import tensorflow as tf
-import cv2
-import os
-import json
 
 from Application.Classifiers.ClassifierInterface import ClassifierInterface
 

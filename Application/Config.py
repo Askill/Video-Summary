@@ -1,9 +1,9 @@
 class Config:
     c = {
-        "min_area": 100,
+        "min_area": 300,
         "max_area": 900000,
         "threashold": 7,
-        "resizeWidth": 500,
+        "resizeWidth": 700,
         "inputPath": None,
         "outputPath": None,
         "maxLayerLength": 5000,

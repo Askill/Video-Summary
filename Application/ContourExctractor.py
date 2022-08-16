@@ -1,15 +1,16 @@
-from Application.VideoReader import VideoReader
-from Application.Config import Config
-
-from threading import Thread, activeCount
-from multiprocessing import Queue, Process, Pool
+import os
+import time
+from multiprocessing import Pool, Process, Queue
 from multiprocessing.pool import ThreadPool
 from queue import Queue
-import imutils
-import time
+from threading import Thread, activeCount
+
 import cv2
+import imutils
 import numpy as np
-import os
+
+from Application.Config import Config
+from Application.VideoReader import VideoReader
 
 
 class ContourExtractor:

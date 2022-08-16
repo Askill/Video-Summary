@@ -2,7 +2,7 @@
 generate test footage/images/
 
 generate test footage/3.MP4
-
+input/*
 short.mp4
 
 __pycache__/

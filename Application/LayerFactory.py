@@ -1,11 +1,12 @@
-from Application.Layer import Layer
-from Application.Config import Config
-from Application.VideoReader import VideoReader
-from Application.Exporter import Exporter
-
-from multiprocessing.pool import ThreadPool
-import numpy as np
 import os
+from multiprocessing.pool import ThreadPool
+
+import numpy as np
+
+from Application.Config import Config
+from Application.Exporter import Exporter
+from Application.Layer import Layer
+from Application.VideoReader import VideoReader
 
 
 class LayerFactory:
@@ -88,16 +89,16 @@ class LayerFactory:
 
     def mergeLayers(self, foundLayerIDs):
         layers = self.getLayersByID(foundLayerIDs)
-        layer1 = layers[0]
+        mergedLayers = layers[0]
         for layer in layers[1:]:
             for i, (contours, masks) in enumerate(zip(layer.bounds, layer.masks)):
                 for contour, mask in zip(contours, masks):
-                    layer1.add(layer.startFrame + i, contour, mask)
+                    mergedLayers.add(layer.startFrame + i, contour, mask)
 
         for i, id in enumerate(foundLayerIDs):
             del self.layers[id - i]
 
-        self.layers.append(layer1)
+        self.layers.append(mergedLayers)
 
     def joinLayers(self):
         self.layers.sort(key=lambda c: c.startFrame)

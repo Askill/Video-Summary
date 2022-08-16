@@ -1,12 +1,14 @@
-from Application.Layer import Layer
-from Application.Config import Config
-from Application.VideoReader import VideoReader
-from Application.Exporter import Exporter
+import time
 from multiprocessing.pool import ThreadPool
-from Application.Classifiers.Classifier import Classifier
+
 import cv2
 import numpy as np
-import time
+
+from Application.Classifiers.Classifier import Classifier
+from Application.Config import Config
+from Application.Exporter import Exporter
+from Application.Layer import Layer
+from Application.VideoReader import VideoReader
 
 
 class LayerManager:
@@ -34,7 +36,7 @@ class LayerManager:
         print("Before deleting sparse layers ", len(self.layers))
         self.deleteSparse()
         print("after deleting sparse layers ", len(self.layers))
-        self.calcTimeOffset()
+        #self.calcTimeOffset()
 
     def deleteSparse(self):
         toDelete = []

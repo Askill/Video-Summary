@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     fileName = "x23-1.mp4"
     outputPath = os.path.join(os.path.dirname(__file__), "output")
-    inputDirPath = os.path.join(os.path.dirname(__file__), "generate test footage")
+    inputDirPath = os.path.join(os.path.dirname(__file__), "input")
 
     config["inputPath"] = os.path.join(inputDirPath, fileName)
     config["outputPath"] = os.path.join(outputPath, fileName)
