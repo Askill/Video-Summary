@@ -41,29 +41,22 @@ class ContourExtractor:
         print("ContourExtractor initiated")
 
     def extractContours(self):
-        videoReader = VideoReader(self.config)
-        self.fps = videoReader.getFPS()
-        self.length = videoReader.getLength()
-        videoReader.fillBuffer()
-
-        threads = self.config["videoBufferLength"]
         self.start = time.time()
-        # start a bunch of frames and let them read from the video reader buffer until the video reader reaches EOF
-        with ThreadPool(2) as pool:
-            while True:
-                while not videoReader.videoEnded() and videoReader.buffer.qsize() == 0:
-                    time.sleep(0.5)
+        with VideoReader(self.config) as videoReader:
+            self.fps = videoReader.getFPS()
+            self.length = videoReader.getLength()
 
-                tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
-                if videoReader.videoEnded():
-                    break
-                pool.map(self.computeMovingAverage, (tmpData,))
-                pool.map(self.async2, (tmpData,))
-                # for data in tmpData:
-                #    self.getContours(data)
-                frameCount = tmpData[-1][0]
+            with ThreadPool(2) as pool:
+                while True:
+                    while not videoReader.videoEnded() and videoReader.buffer.qsize() == 0:
+                        time.sleep(0.5)
 
-        videoReader.thread.join()
+                    tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
+                    if videoReader.videoEnded():
+                        break
+                    pool.map(self.computeMovingAverage, (tmpData,))
+                    pool.map(self.async2, (tmpData,))
+
         return self.extractedContours, self.extractedMasks
 
     def async2(self, tmpData):
