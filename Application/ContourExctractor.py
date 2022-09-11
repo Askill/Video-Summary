@@ -110,7 +110,6 @@ class ContourExtractor:
         return gray
 
     def computeMovingAverage(self, frames):
-        avg = []
         averageFrames = self.config["avgNum"]
 
         if frames[0][0] < averageFrames:

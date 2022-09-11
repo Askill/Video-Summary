@@ -21,7 +21,7 @@ class VideoReader:
         # buffer = Queue([(frameNumber, frame), ])
         self.multiprocess = multiprocess
         if multiprocess:
-            self.buffer = multiprocessing.Queue(config["videoBufferLength"])
+            self.buffer = multiprocessing.Manager().Queue(config["videoBufferLength"])
         else:
             self.buffer = queue.Queue(config["videoBufferLength"])
         self.stopped = False
