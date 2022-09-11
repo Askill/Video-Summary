@@ -11,114 +11,112 @@ from Application.VideoReader import VideoReader
 
 
 class Exporter:
-    fps = 30
-
     def __init__(self, config):
-        self.footagePath = config["inputPath"]
-        self.outputPath = config["outputPath"]
-        self.resizeWidth = config["resizeWidth"]
+        self.footage_path = config["inputPath"]
+        self.output_path = config["outputPath"]
+        self.resize_width = config["resizeWidth"]
         self.config = config
         print("Exporter initiated")
 
-    def export(self, layers, contours, masks, raw=True, overlayed=True, blackBackground=False, showProgress=False):
+    def export(self, layers, contours, masks, raw=True, overlayed=True, black_background=False, show_progress=False):
         if raw:
-            self.exportRawData(layers, contours, masks)
+            self.export_raw_data(layers, contours, masks)
         if overlayed:
-            self.exportOverlayed(layers, blackBackground, showProgress)
+            self.export_overlayed(layers, black_background, show_progress)
         else:
-            self.exportLayers(layers)
+            self.export_layers(layers)
 
-    def exportLayers(self, layers):
-        listOfFrames = self.makeListOfFrames(layers)
-        with VideoReader(self.config, listOfFrames) as videoReader:
+    def export_layers(self, layers):
+        list_of_frames = self.make_list_of_frames(layers)
+        with VideoReader(self.config, list_of_frames) as video_reader:
             
-            underlay = cv2.VideoCapture(self.footagePath).read()[1]
+            underlay = cv2.VideoCapture(self.footage_path).read()[1]
             underlay = cv2.cvtColor(underlay, cv2.COLOR_BGR2RGB)
 
-            fps = videoReader.getFPS()
-            writer = imageio.get_writer(self.outputPath, fps=fps)
+            fps = video_reader.get_fps()
+            writer = imageio.get_writer(self.output_path, fps=fps)
 
             start = time.time()
             for i, layer in enumerate(layers):
                 print(f"\r {i}/{len(layers)} {round(i/len(layers)*100,2)}% {round((time.time() - start), 2)}s", end="\r")
                 if len(layer.bounds[0]) == 0:
                     continue
-                videoReader = VideoReader(self.config)
-                listOfFrames = self.makeListOfFrames([layer])
-                videoReader.fillBuffer(listOfFrames)
-                while not videoReader.videoEnded():
-                    frameCount, frame = videoReader.pop()
+                video_reader = VideoReader(self.config)
+                list_of_frames = self.make_list_of_frames([layer])
+                video_reader.fill_buffer(list_of_frames)
+                while not video_reader.video_ended():
+                    frame_count, frame = video_reader.pop()
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     frame2 = np.copy(underlay)
-                    for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                    for (x, y, w, h) in layer.bounds[frame_count - layer.startFrame]:
                         if x is None:
                             continue
-                        factor = videoReader.w / self.resizeWidth
+                        factor = video_reader.w / self.resize_width
                         x, y, w, h = (int(x * factor), int(y * factor), int(w * factor), int(h * factor))
 
                         frame2[y : y + h, x : x + w] = np.copy(frame[y : y + h, x : x + w])
 
-                        self.addTimestamp(frame2, videoReader, frameCount, layer, x, y, w, h)
+                        self.add_timestamp(frame2, video_reader, frame_count, x, y, w, h)
                     writer.append_data(frame2)
 
             writer.close()
 
-    def exportOverlayed(self, layers, blackBackground=False, showProgress=False):
+    def export_overlayed(self, layers, black_background=False, show_progress=False):
 
-        listOfFrames = self.makeListOfFrames(layers)
-        maxLength = self.getMaxLengthOfLayers(layers)
+        list_of_frames = self.make_list_of_frames(layers)
+        max_length = self.get_max_length_of_layers(layers)
 
-        if blackBackground:
-            underlay = np.zeros(shape=[videoReader.h, videoReader.w, 3], dtype=np.uint8)
-        else:
-            underlay = cv2.VideoCapture(self.footagePath).read()[1]
-            underlay = cv2.cvtColor(underlay, cv2.COLOR_BGR2RGB)
+        with VideoReader(self.config, list_of_frames) as videoReader:
+            if black_background:
+                underlay = np.zeros(shape=[videoReader.h, videoReader.w, 3], dtype=np.uint8)
+            else:
+                underlay = cv2.VideoCapture(self.footage_path).read()[1]
+                underlay = cv2.cvtColor(underlay, cv2.COLOR_BGR2RGB)
 
-        frames = []
-        for i in range(maxLength):
-            frames.append(np.copy(underlay))
-
-        with VideoReader(self.config, listOfFrames) as videoReader:
-            while not videoReader.videoEnded():
-                frameCount, frame = videoReader.pop()
-                if frameCount % (60 * self.fps) == 0:
-                    print("Minutes processed: ", frameCount / (60 * self.fps), end="\r")
+            frames = []
+            for i in range(max_length):
+                frames.append(np.copy(underlay))
+            fps = videoReader.fps
+            while not videoReader.video_ended():
+                frame_count, frame = videoReader.pop()
+                if frame_count % (60 * fps) == 0:
+                    print("Minutes processed: ", frame_count / (60 * fps), end="\r")
                 if frame is None:
                     print("ContourExtractor: frame was None")
                     continue
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 for layer in layers:
-                    if layer.startFrame <= frameCount and layer.startFrame + len(layer.bounds) > frameCount:
-                        for i in range(0, len(layer.bounds[frameCount - layer.startFrame])):
+                    if layer.startFrame <= frame_count and layer.startFrame + len(layer.bounds) > frame_count:
+                        for i in range(0, len(layer.bounds[frame_count - layer.startFrame])):
                             try:
-                                x, y, w, h = layer.bounds[frameCount - layer.startFrame][i]
+                                x, y, w, h = layer.bounds[frame_count - layer.startFrame][i]
                                 if None in (x, y, w, h):
                                     break
-                                factor = videoReader.w / self.resizeWidth
+                                factor = videoReader.w / self.resize_width
                                 x, y, w, h = (int(x * factor), int(y * factor), int(w * factor), int(h * factor))
 
-                                mask = self.getMask(i, frameCount, layer, w, h)
-                                background = frames[frameCount - layer.startFrame + layer.exportOffset]
-                                self.addMaskedContent(frame, x, y, w, h, mask, background)
-                                frames[frameCount - layer.startFrame + layer.exportOffset] = np.copy(background)
+                                mask = self.get_mask(i, frame_count, layer, w, h)
+                                background = frames[frame_count - layer.startFrame + layer.exportOffset]
+                                self.add_masked_content(frame, x, y, w, h, mask, background)
+                                frames[frame_count - layer.startFrame + layer.exportOffset] = np.copy(background)
 
-                                if showProgress:
+                                if show_progress:
                                     cv2.imshow("changes x", background)
                                     cv2.waitKey(10) & 0xFF
 
-                                self.addTimestamp(frames[frameCount - layer.startFrame + layer.exportOffset], videoReader, frameCount, layer, x, y, w, h)
+                                self.add_timestamp(frames[frame_count - layer.startFrame + layer.exportOffset], videoReader, frame_count, x, y, w, h)
                             except:
                                 continue
 
-        writer = imageio.get_writer(self.outputPath, fps=videoReader.getFPS())
+        writer = imageio.get_writer(self.output_path, fps=videoReader.get_fps())
         for frame in frames:
             writer.append_data(frame)
 
         writer.close()
 
-    def addMaskedContent(self, frame, x, y, w, h, mask, background):
-        maskedFrame = np.copy(
+    def add_masked_content(self, frame, x, y, w, h, mask, background):
+        masked_frame = np.copy(
             cv2.bitwise_and(
                 background[y : y + h, x : x + w],
                 background[y : y + h, x : x + w],
@@ -126,15 +124,15 @@ class Exporter:
             )
         )
         background[y : y + h, x : x + w] = cv2.addWeighted(
-            maskedFrame,
+            masked_frame,
             1,
             np.copy(cv2.bitwise_and(frame[y : y + h, x : x + w], frame[y : y + h, x : x + w], mask=mask)),
             1,
             0,
         )
 
-    def addTimestamp(self, frame, videoReader, frameCount, layer, x, y, w, h):
-        time = datetime.fromtimestamp(int(frameCount / self.fps) + videoReader.getStartTime())
+    def add_timestamp(self, frame, video_reader, frame_count, x, y, w, h):
+        time = datetime.fromtimestamp(int(frame_count / video_reader.fps) + video_reader.get_start_time())
         cv2.putText(
             frame,
             f"{time.hour}:{time.minute}:{time.second}",
@@ -145,29 +143,33 @@ class Exporter:
             2,
         )
 
-    def getMask(self, i, frameCount, layer, w, h):
-        mask = layer.masks[frameCount - layer.startFrame][i]
+    def get_mask(self, i, frame_count, layer, w, h):
+        mask = layer.masks[frame_count - layer.startFrame][i]
         mask = imutils.resize(mask, width=w, height=h + 1)
         mask = np.resize(mask, (h, w))
         mask = cv2.erode(mask, None, iterations=10)
         mask *= 255
         return mask
 
-    def exportRawData(self, layers, contours, masks):
-        with open(self.config["importPath"], "wb+") as file:
-            pickle.dump((layers, contours, masks), file)
+    def export_raw_data(self, layers, contours, masks):
+        with open(self.config["importPath"] + "_layers", "wb+") as file:
+            pickle.dump(layers, file)
+        with open(self.config["importPath"] + "_contours", "wb+") as file:
+            pickle.dump(contours, file)
+        with open(self.config["importPath"] + "_masks", "wb+") as file:
+            pickle.dump(masks, file)
 
-    def getMaxLengthOfLayers(self, layers):
-        maxLength = 0
+    def get_max_length_of_layers(self, layers):
+        max_length = 0
         for layer in layers:
-            if layer.getLength() > maxLength:
-                maxLength = layer.getLength()
-        return maxLength
+            if layer.getLength() > max_length:
+                max_length = layer.getLength()
+        return max_length
 
-    def makeListOfFrames(self, layers):
-        """Returns set of all Frames which are relavant to the Layers"""
-        frameNumbers = set()
+    def make_list_of_frames(self, layers):
+        """Returns set of all Frames which are relevant to the Layers"""
+        frame_numbers = set()
         for layer in layers:
-            frameNumbers.update(list(range(layer.startFrame, layer.startFrame + len(layer))))
+            frame_numbers.update(list(range(layer.startFrame, layer.startFrame + len(layer))))
 
-        return sorted(list(frameNumbers))
+        return sorted(list(frame_numbers))

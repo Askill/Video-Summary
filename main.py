@@ -1,5 +1,6 @@
 import os
 import time
+import argparse
 
 from Application.Config import Config
 from Application.ContourExctractor import ContourExtractor
@@ -12,45 +13,51 @@ from Application.VideoReader import VideoReader
 
 
 def main(config):
-    startTotal = time.time()
+    start_total = time.time()
 
     if not os.path.exists(config["importPath"]):
-        contours, masks = ContourExtractor(config).extractContours()
-        layerFactory = LayerFactory(config)
-        layers = layerFactory.extractLayers(contours, masks)
+        contours, masks = ContourExtractor(config).extract_contours()
+        layers = LayerFactory(config).extract_layers(contours, masks)
     else:
-        layers, contours, masks = Importer(config).importRawData()
-        layerFactory = LayerFactory(config)
-        layers = layerFactory.extractLayers(contours, masks)
+        layers, contours, masks = Importer(config).import_raw_data()
+        layers = LayerFactory(config).extract_layers(contours, masks)
 
-    layerManager = LayerManager(config, layers)
-    layerManager.cleanLayers()
+    layer_manager = LayerManager(config, layers)
+    layer_manager.clean_layers()
 
     # layerManager.tagLayers()
-    if len(layerManager.layers) == 0:
+    if len(layer_manager.layers) == 0:
         exit(1)
 
     heatmap = HeatMap(
-        config["w"], config["h"], [contour for layer in layerManager.layers for contour in layer.bounds], 1920 / config["resizeWidth"]
+        config["w"], config["h"], [contour for layer in layer_manager.layers for contour in layer.bounds], 1920 / config["resizeWidth"]
     )
-    heatmap.showImage()
+    heatmap.save__image(config["outputPath"].split(".")[0] + "_heatmap.png")
 
-    print(f"Exporting {len(contours)} Contours and {len(layerManager.layers)} Layers")
-    Exporter(config).export(layerManager.layers, contours, masks, raw=True, overlayed=True)
-    print("Total time: ", time.time() - startTotal)
+    print(f"Exporting {len(contours)} Contours and {len(layer_manager.layers)} Layers")
+    Exporter(config).export(layer_manager.layers, contours, masks, raw=True, overlayed=True)
+    print("Total time: ", time.time() - start_total)
 
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='Extract movement from static camera recording')
+    parser.add_argument('input', metavar='input_file', type=str,
+                        help='input video to extract movement from')
+    parser.add_argument('output', metavar='output_dir', type=str, nargs="?", default="output",
+                        help='output directory to save results and cached files into')
+    args = parser.parse_args()
+
     config = Config()
 
-    inputPath = os.path.join(os.path.dirname(__file__), "input/x23-1.mp4")
-    outputPath = os.path.join(os.path.dirname(__file__), "output")
-    
-    fileName = inputPath.split("/")[-1]
+    input_path = os.path.join(os.path.dirname(__file__), args.input)
+    output_path = os.path.join(os.path.dirname(__file__), args.output)
 
-    config["inputPath"] = inputPath
-    config["outputPath"] = os.path.join(outputPath, fileName)
-    config["importPath"] = os.path.join(outputPath, fileName.split(".")[0] + ".txt")
-    config["w"], config["h"] = VideoReader(config).getWH()
+    file_name = input_path.split("/")[-1]
+
+    config["inputPath"] = input_path
+    config["outputPath"] = os.path.join(output_path, file_name)
+    config["importPath"] = os.path.join(output_path, file_name.split(".")[0] + ".txt")
+    config["w"], config["h"] = VideoReader(config).get_wh()
 
     main(config)

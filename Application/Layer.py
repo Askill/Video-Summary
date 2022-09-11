@@ -6,11 +6,11 @@ import numpy as np
 class Layer:
     # bounds = [[(x,y,w,h), ],]
 
-    startFrame = None
-    lastFrame = None
+    start_frame = None
+    last_frame = None
     length = None
 
-    def __init__(self, startFrame, data, mask, config):
+    def __init__(self, start_frame, data, mask, config):
         """returns a Layer object
 
         Layers are collections of contours with a StartFrame,
@@ -21,57 +21,57 @@ class Layer:
         but we only care about the corners of the contours.
         So we save the bounds (x,y,w,h) in bounds[] and the actual content in data[]
         """
-        self.startFrame = startFrame
-        self.lastFrame = startFrame
+        self.start_frame = start_frame
+        self.last_frame = start_frame
         self.config = config
         self.data = []
         self.bounds = []
         self.masks = []
         self.stats = dict()
-        self.exportOffset = 0
+        self.export_offset = 0
 
         self.bounds.append([data])
         self.masks.append([mask])
 
-    def add(self, frameNumber, bound, mask):
+    def add(self, frame_number, bound, mask):
         """Adds a bound to the Layer at the layer index which corresponds to the given framenumber"""
-        index = frameNumber - self.startFrame
+        index = frame_number - self.start_frame
         if index < 0:
             return
-        if frameNumber > self.lastFrame:
-            for i in range(frameNumber - self.lastFrame):
+        if frame_number > self.last_frame:
+            for i in range(frame_number - self.last_frame):
                 self.bounds.append([])
                 self.masks.append([])
-            self.lastFrame = frameNumber
+            self.last_frame = frame_number
 
         if bound not in self.bounds[index]:
             self.bounds[index].append(bound)
             self.masks[index].append(mask)
 
-    def getLength(self):
-        return len(self) + self.exportOffset
+    def get_length(self):
+        return len(self) + self.export_offset
 
     def __len__(self):
         self.length = len(self.bounds)
         return self.length
 
-    def spaceOverlaps(self, layer2):
+    def space_overlaps(self, layer2):
         """Checks if there is an overlap in the bounds of current layer with given layer"""
         overlap = False
-        maxLen = min(len(layer2.bounds), len(self.bounds))
-        bounds = self.bounds[:maxLen]
-        for b1s, b2s in zip(bounds[::10], layer2.bounds[:maxLen:10]):
+        max_len = min(len(layer2.bounds), len(self.bounds))
+        bounds = self.bounds[:max_len]
+        for b1s, b2s in zip(bounds[::10], layer2.bounds[:max_len:10]):
             for b1 in b1s:
                 for b2 in b2s:
-                    if self.contoursOverlay((b1[0], b1[1] + b1[3]), (b1[0] + b1[2], b1[1]), (b2[0], b2[1] + b2[3]), (b2[0] + b2[2], b2[1])):
+                    if self.contours_overlay((b1[0], b1[1] + b1[3]), (b1[0] + b1[2], b1[1]), (b2[0], b2[1] + b2[3]), (b2[0] + b2[2], b2[1])):
                         overlap = True
                         break
         return overlap
 
-    def timeOverlaps(self, layer2):
+    def time_overlaps(self, layer2):
         """Checks for overlap in time between current and given layer"""
-        s1 = self.exportOffset
-        e1 = self.lastFrame - self.startFrame + self.exportOffset
+        s1 = self.export_offset
+        e1 = self.last_frame - self.start_frame + self.export_offset
         s2 = layer2.exportOffset
         e2 = layer2.lastFrame - layer2.startFrame + layer2.exportOffset
 
@@ -82,7 +82,7 @@ class Layer:
         else:
             return False
 
-    def contoursOverlay(self, l1, r1, l2, r2):
+    def contours_overlay(self, l1, r1, l2, r2):
         if l1[0] >= r2[0] or l2[0] >= r1[0]:
             return False
         if l1[1] <= r2[1] or l2[1] <= r1[1]:

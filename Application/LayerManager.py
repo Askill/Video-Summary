@@ -17,53 +17,53 @@ class LayerManager:
         self.layers = layers
         self.tolerance = config["tolerance"]
         self.ttolerance = config["ttolerance"]
-        self.minLayerLength = config["minLayerLength"]
-        self.maxLayerLength = config["maxLayerLength"]
-        self.resizeWidth = config["resizeWidth"]
-        self.footagePath = config["inputPath"]
+        self.min_layer_length = config["minLayerLength"]
+        self.max_layer_length = config["maxLayerLength"]
+        self.resize_width = config["resizeWidth"]
+        self.footage_path = config["inputPath"]
         self.config = config
         # self.classifier = Classifier()
         self.tags = []
         print("LayerManager constructed")
 
-    def cleanLayers(self):
+    def clean_layers(self):
         print("'Cleaning' Layers")
         print("Before deleting short layers ", len(self.layers))
-        self.freeMin()
+        self.free_min()
         print("Before deleting long layers ", len(self.layers))
-        self.freeMax()
-        self.sortLayers()
+        self.free_max()
+        self.sort_layers()
         print("Before deleting sparse layers ", len(self.layers))
-        self.deleteSparse()
+        self.delete_sparse()
         print("after deleting sparse layers ", len(self.layers))
         #self.calcTimeOffset()
 
-    def deleteSparse(self):
-        toDelete = []
+    def delete_sparse(self):
+        to_delete = []
         for i, l in enumerate(self.layers):
             empty = l.bounds.count([])
             if empty / len(l) > 0.5:
-                toDelete.append(i)
+                to_delete.append(i)
 
-        for i, id in enumerate(toDelete):
+        for i, id in enumerate(to_delete):
             del self.layers[id - i]
 
-    def freeMin(self):
+    def free_min(self):
         self.data.clear()
         layers = []
         for l in self.layers:
-            if len(l) > self.minLayerLength:
+            if len(l) > self.min_layer_length:
                 layers.append(l)
         self.layers = layers
 
-    def freeMax(self):
+    def free_max(self):
         layers = []
         for l in self.layers:
-            if len(l) < self.maxLayerLength:
+            if len(l) < self.max_layer_length:
                 layers.append(l)
         self.layers = layers
 
-    def tagLayers(self):
+    def tag_layers(self):
         """Use classifieres the tag all Layers, by reading the contour content from the original video, then applying the classifier"""
         print("Tagging Layers")
         exporter = Exporter(self.config)
@@ -73,19 +73,19 @@ class LayerManager:
             start = time.time()
             if len(layer.bounds[0]) == 0:
                 continue
-            listOfFrames = exporter.makeListOfFrames([layer])
+            list_of_frames = exporter.make_list_of_frames([layer])
 
-            videoReader = VideoReader(self.config, listOfFrames)
-            videoReader.fillBuffer()
+            video_reader = VideoReader(self.config, list_of_frames)
+            video_reader.fill_buffer()
 
-            while not videoReader.videoEnded():
-                frameCount, frame = videoReader.pop()
+            while not video_reader.video_ended():
+                frame_count, frame = video_reader.pop()
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 data = []
-                for (x, y, w, h) in layer.bounds[frameCount - layer.startFrame]:
+                for (x, y, w, h) in layer.bounds[frame_count - layer.startFrame]:
                     if x is None:
                         break
-                    factor = videoReader.w / self.resizeWidth
+                    factor = video_reader.w / self.resize_width
                     x = int(x * factor)
                     y = int(y * factor)
                     w = int(w * factor)
@@ -96,16 +96,16 @@ class LayerManager:
             print(tags)
             self.tags.append(tags)
 
-            videoReader.thread.join()
+            video_reader.thread.join()
 
-    def sortLayers(self):
+    def sort_layers(self):
         self.layers.sort(key=lambda c: c.startFrame)
 
-    def calcTimeOffset(self):
-        lenL = len(self.layers)
+    def calc_time_offset(self):
+        len_l = len(self.layers)
         for i in range(1, len(self.layers)):
             layer = self.layers[i]
-            print(f"\r {i}/{lenL}", end="\r")
+            print(f"\r {i}/{len_l}", end="\r")
             overlap = True
             tries = 1
             while overlap:

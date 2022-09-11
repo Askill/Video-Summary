@@ -17,68 +17,64 @@ class ContourExtractor:
     # extracedContours = {frame_number: [(contour, (x,y,w,h)), ...], }
     # dict with frame numbers as keys and the contour bounds of every contour for that frame
 
-    def getExtractedContours(self):
-        return self.extractedContours
+    def get_extracted_contours(self):
+        return self.extracted_contours
 
-    def getExtractedMasks(self):
-        return self.extractedMasks
+    def get_extracted_masks(self):
+        return self.extracted_masks
 
     def __init__(self, config):
-        self.frameBuffer = Queue(16)
-        self.extractedContours = dict()
-        self.extractedMasks = dict()
+        self.frame_buffer = Queue(16)
+        self.extracted_contours = dict()
+        self.extracted_masks = dict()
         self.min_area = config["min_area"]
         self.max_area = config["max_area"]
         self.threashold = config["threashold"]
-        self.resizeWidth = config["resizeWidth"]
-        self.videoPath = config["inputPath"]
-        self.xDim = 0
-        self.yDim = 0
+        self.resize_width = config["resizeWidth"]
+        self.video_path = config["inputPath"]
+        self.x_dim = 0
+        self.y_dim = 0
         self.config = config
-        self.lastFrames = None
+        self.last_frames = None
         self.averages = dict()
 
         print("ContourExtractor initiated")
 
-    def extractContours(self):
+    def extract_contours(self):
         self.start = time.time()
         with VideoReader(self.config) as videoReader:
-            self.fps = videoReader.getFPS()
-            self.length = videoReader.getLength()
+            self.fps = videoReader.get_fps()
+            self.length = videoReader.get_length()
 
-            with ThreadPool(2) as pool:
+            with ThreadPool(os.cpu_count()) as pool:
                 while True:
-                    while not videoReader.videoEnded() and videoReader.buffer.qsize() == 0:
+                    while not videoReader.video_ended() and videoReader.buffer.qsize() == 0:
                         time.sleep(0.5)
 
-                    tmpData = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
-                    if videoReader.videoEnded():
+                    tmp_data = [videoReader.pop() for i in range(0, videoReader.buffer.qsize())]
+                    if videoReader.video_ended():
                         break
-                    pool.map(self.computeMovingAverage, (tmpData,))
-                    pool.map(self.async2, (tmpData,))
+                    pool.map(self.compute_moving_Average, (tmp_data,))
+                    pool.map(self.get_contours, tmp_data)
 
-        return self.extractedContours, self.extractedMasks
+        return self.extracted_contours, self.extracted_masks
 
-    def async2(self, tmpData):
-        with ThreadPool(os.cpu_count()) as pool2:
-            pool2.map(self.getContours, tmpData)
-
-    def getContours(self, data):
-        frameCount, frame = data
+    def get_contours(self, data):
+        frame_count, frame = data
         # wait for the reference frame, which is calculated by averaging some revious frames
-        while frameCount not in self.averages:
+        while frame_count not in self.averages:
             time.sleep(0.1)
-        firstFrame = self.averages.pop(frameCount, None)
+        first_frame = self.averages.pop(frame_count, None)
 
-        if frameCount % (10 * self.fps) == 1:
+        if frame_count % (10 * self.fps) == 1:
             print(
-                f" \r \033[K {round((frameCount/self.fps)*100/self.length, 2)} % processed in {round(time.time() - self.start, 2)}s",
+                f" \r \033[K {round((frame_count/self.fps)*100/self.length, 2)} % processed in {round(time.time() - self.start, 2)}s",
                 end="\r",
             )
 
-        gray = self.prepareFrame(frame)
-        frameDelta = cv2.absdiff(gray, firstFrame)
-        thresh = cv2.threshold(frameDelta, self.threashold, 255, cv2.THRESH_BINARY)[1]
+        gray = self.prepare_frame(frame)
+        frame_delta = cv2.absdiff(gray, first_frame)
+        thresh = cv2.threshold(frame_delta, self.threashold, 255, cv2.THRESH_BINARY)[1]
         # dilate the thresholded image to fill in holes, then find contours
         thresh = cv2.dilate(thresh, None, iterations=10)
         # cv2.imshow("changes x", thresh)
@@ -100,44 +96,43 @@ class ContourExtractor:
 
         if len(contours) != 0 and contours is not None:
             # this should be thread safe
-            self.extractedContours[frameCount] = contours
-            self.extractedMasks[frameCount] = masks
+            self.extracted_contours[frame_count] = contours
+            self.extracted_masks[frame_count] = masks
 
-    def prepareFrame(self, frame):
-        frame = imutils.resize(frame, width=self.resizeWidth)
+    def prepare_frame(self, frame):
+        frame = imutils.resize(frame, width=self.resize_width)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.GaussianBlur(gray, (3, 3), 0)
         return gray
 
-    def computeMovingAverage(self, frames):
-        avg = []
-        averageFrames = self.config["avgNum"]
+    def compute_moving_Average(self, frames):
+        average_frames = self.config["avgNum"]
 
-        if frames[0][0] < averageFrames:
+        if frames[0][0] < average_frames:
             frame = frames[0][1]
-            frame = self.prepareFrame(frame)
+            frame = self.prepare_frame(frame)
             for j in range(0, len(frames)):
-                frameNumber, _ = frames[j]
-                self.averages[frameNumber] = frame
+                frame_number, _ = frames[j]
+                self.averages[frame_number] = frame
                 # put last x frames into a buffer
-            self.lastFrames = frames[-averageFrames:]
+            self.last_frames = frames[-average_frames:]
             return
 
-        if self.lastFrames is not None:
-            frames = self.lastFrames + frames
+        if self.last_frames is not None:
+            frames = self.last_frames + frames
 
-        tmp = [[j, frames, averageFrames] for j in range(averageFrames, len(frames))]
+        tmp = [[j, frames, average_frames] for j in range(average_frames, len(frames))]
         with ThreadPool(int(os.cpu_count())) as pool:
-            pool.map(self.averageDaFrames, tmp)
+            pool.map(self.average_da_frames, tmp)
 
-        self.lastFrames = frames[-averageFrames:]
+        self.last_frames = frames[-average_frames:]
 
-    def averageDaFrames(self, dat):
-        j, frames, averageFrames = dat
-        frameNumber, frame = frames[j]
-        frame = self.prepareFrame(frame)
+    def average_da_frames(self, dat):
+        j, frames, average_frames = dat
+        frame_number, frame = frames[j]
+        frame = self.prepare_frame(frame)
 
-        avg = frame / averageFrames
-        for jj in range(0, averageFrames - 1):
-            avg += self.prepareFrame(frames[j - jj][1]) / averageFrames
-        self.averages[frameNumber] = np.array(np.round(avg), dtype=np.uint8)
+        avg = frame / average_frames
+        for jj in range(0, average_frames - 1):
+            avg += self.prepare_frame(frames[j - jj][1]) / average_frames
+        self.averages[frame_number] = np.array(np.round(avg), dtype=np.uint8)

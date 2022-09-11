@@ -1,26 +1,30 @@
 import numpy as np
 from matplotlib import pyplot as plt
-
+from PIL import Image
 
 class HeatMap:
-    def __init__(self, x, y, contours, resizeFactor=1):
-        self.imageBW = np.zeros(shape=[y, x, 3], dtype=np.float64)
-        self._resizeFactor = resizeFactor
-        self._createImage(contours)
+    def __init__(self, x, y, contours, resize_factor=1):
+        self.image_bw = np.zeros(shape=[y, x, 3], dtype=np.float64)
+        self._resize_factor = resize_factor
+        self._create_image(contours)
 
-    def _createImage(self, contours):
+    def _create_image(self, contours):
         for contour in contours:
             for x, y, w, h in contour:
                 x, y, w, h = (
-                    x * self._resizeFactor,
-                    y * self._resizeFactor,
-                    w * self._resizeFactor,
-                    h * self._resizeFactor,
+                    x * self._resize_factor,
+                    y * self._resize_factor,
+                    w * self._resize_factor,
+                    h * self._resize_factor,
                 )
-                self.imageBW[int(y) : int(y + h), int(x) : int(x + w)] += 1
+                self.image_bw[int(y) : int(y + h), int(x) : int(x + w)] += 1
 
-        self.imageBW = np.nan_to_num(self.imageBW / self.imageBW.sum(axis=1)[:, np.newaxis], 0)
+        self.image_bw = np.nan_to_num(self.image_bw / self.image_bw.sum(axis=1)[:, np.newaxis], 0)
 
-    def showImage(self):
-        plt.imshow(self.imageBW * 255)
+    def show_image(self):
+        plt.imshow(self.image_bw * 255)
         plt.show()
+
+    def save__image(self, path):
+        im = Image.fromarray(self.image_bw * 255)
+        im.save(path)

@@ -7,33 +7,33 @@ import cv2
 
 
 class VideoReader:
-    listOfFrames = None
+    list_of_frames = None
     w = None
     h = None
 
-    def __init__(self, config, setOfFrames=None, multiprocess=False):
-        videoPath = config["inputPath"]
-        if videoPath is None:
-            raise Exception("ERROR: Video reader needs a videoPath!")
-        self.videoPath = videoPath
-        self.lastFrame = 0
+    def __init__(self, config, set_of_frames=None, multiprocess=False):
+        video_path = config["inputPath"]
+        if video_path is None:
+            raise Exception("ERROR: Video reader needs a video_path!")
+        self.video_path = video_path
+        self.last_frame = 0
         # buffer data struct:
         # buffer = Queue([(frameNumber, frame), ])
         self.multiprocess = multiprocess
         if multiprocess:
-            self.buffer = multiprocessing.Queue(config["videoBufferLength"])
+            self.buffer = multiprocessing.Manager().Queue(config["videoBufferLength"])
         else:
             self.buffer = queue.Queue(config["videoBufferLength"])
         self.stopped = False
-        self.getWH()
-        self.calcFPS()
-        self.calcLength()
-        self.calcStartTime()
-        if setOfFrames is not None:
-            self.listOfFrames = sorted(setOfFrames)
+        self.get_wh()
+        self.calc_fps()
+        self.calc_length()
+        self.calc_start_time()
+        if set_of_frames is not None:
+            self.list_of_frames = sorted(set_of_frames)
 
     def __enter__(self):
-        self.fillBuffer()
+        self.fill_buffer()
         return self
 
     def __exit__(self, type, value, traceback):
@@ -43,97 +43,97 @@ class VideoReader:
         self.thread.join()
 
     def pop(self):
-        frameNumber, frame = self.buffer.get(block=True)
+        frame_number, frame = self.buffer.get(block=True)
         if frame is None:
             self.stopped = True
-        return frameNumber, frame
+        return frame_number, frame
 
-    def fillBuffer(self, listOfFrames=None):
-        self.endFrame = int(cv2.VideoCapture(self.videoPath).get(cv2.CAP_PROP_FRAME_COUNT))
-        if listOfFrames is not None:
-            self.listOfFrames = listOfFrames
+    def fill_buffer(self, list_of_frames=None):
+        self.end_frame = int(cv2.VideoCapture(self.video_path).get(cv2.CAP_PROP_FRAME_COUNT))
+        if list_of_frames is not None:
+            self.list_of_frames = list_of_frames
 
         if self.multiprocess:
-            if self.listOfFrames is not None:
-                self.thread = multiprocessing.Process(target=self.readFramesByList, args=())
+            if self.list_of_frames is not None:
+                self.thread = multiprocessing.Process(target=self.read_frames_by_list, args=())
             else:
-                self.thread = multiprocessing.Process(target=self.readFrames, args=())
+                self.thread = multiprocessing.Process(target=self.read_frames, args=())
         else:
-            if self.listOfFrames is not None:
-                self.thread = threading.Thread(target=self.readFramesByList, args=())
+            if self.list_of_frames is not None:
+                self.thread = threading.Thread(target=self.read_frames_by_list, args=())
             else:
-                self.thread = threading.Thread(target=self.readFrames, args=())
+                self.thread = threading.Thread(target=self.read_frames, args=())
         self.thread.start()
 
-    def readFrames(self):
+    def read_frames(self):
         """Reads video from start to finish"""
-        self.vc = cv2.VideoCapture(self.videoPath)
-        while self.lastFrame < self.endFrame:
+        self.vc = cv2.VideoCapture(self.video_path)
+        while self.last_frame < self.end_frame:
             res, frame = self.vc.read()
             if res:
-                self.buffer.put((self.lastFrame, frame))
-            self.lastFrame += 1
-        self.buffer.put((self.lastFrame, None))
+                self.buffer.put((self.last_frame, frame))
+            self.last_frame += 1
+        self.buffer.put((self.last_frame, None))
 
-    def readFramesByList(self):
+    def read_frames_by_list(self):
         """Reads all frames from a list of frame numbers"""
-        self.vc = cv2.VideoCapture(self.videoPath)
-        self.vc.set(1, self.listOfFrames[0])
-        self.lastFrame = self.listOfFrames[0]
-        self.endFrame = self.listOfFrames[-1]
+        self.vc = cv2.VideoCapture(self.video_path)
+        self.vc.set(1, self.list_of_frames[0])
+        self.last_frame = self.list_of_frames[0]
+        self.end_frame = self.list_of_frames[-1]
 
-        while self.lastFrame < self.endFrame:
-            if self.lastFrame in self.listOfFrames:
+        while self.last_frame < self.end_frame:
+            if self.last_frame in self.list_of_frames:
                 res, frame = self.vc.read()
                 if res:
-                    self.buffer.put((self.lastFrame, frame))
+                    self.buffer.put((self.last_frame, frame))
                 else:
                     print("Couldn't read Frame")
                 # since the list is sorted the first element is always the lowest relevant framenumber
                 # [0,1,2,3,32,33,34,35,67,68,69]
-                self.listOfFrames.pop(0)
-                self.lastFrame += 1
+                self.list_of_frames.pop(0)
+                self.last_frame += 1
             else:
                 # if current Frame number is not in list of Frames, we can skip a few frames
-                self.vc.set(1, self.listOfFrames[0])
-                self.lastFrame = self.listOfFrames[0]
-        self.buffer.put((self.lastFrame, None))
+                self.vc.set(1, self.list_of_frames[0])
+                self.last_frame = self.list_of_frames[0]
+        self.buffer.put((self.last_frame, None))
 
-    def videoEnded(self):
+    def video_ended(self):
         if self.stopped and self.buffer.empty():
             return True
         else:
             return False
 
-    def calcFPS(self):
-        self.fps = cv2.VideoCapture(self.videoPath).get(cv2.CAP_PROP_FPS)
+    def calc_fps(self):
+        self.fps = cv2.VideoCapture(self.video_path).get(cv2.CAP_PROP_FPS)
 
-    def getFPS(self):
+    def get_fps(self):
         if self.fps is None:
-            self.calcFPS()
+            self.calc_fps()
         return self.fps
 
-    def calcLength(self):
-        fc = int(cv2.VideoCapture(self.videoPath).get(cv2.CAP_PROP_FRAME_COUNT))
-        self.length = fc / self.getFPS()
+    def calc_length(self):
+        fc = int(cv2.VideoCapture(self.video_path).get(cv2.CAP_PROP_FRAME_COUNT))
+        self.length = fc / self.get_fps()
 
-    def getLength(self):
+    def get_length(self):
         if self.length is None:
-            self.calcLength()
+            self.calc_length()
         return self.length
 
-    def calcStartTime(self):
-        starttime = os.stat(self.videoPath).st_mtime
-        length = self.getLength()
+    def calc_start_time(self):
+        starttime = os.stat(self.video_path).st_mtime
+        length = self.get_length()
         starttime = starttime - length
         self.starttime = starttime
 
-    def getStartTime(self):
+    def get_start_time(self):
         return self.starttime
 
-    def getWH(self):
+    def get_wh(self):
         """get width and height"""
-        vc = cv2.VideoCapture(self.videoPath)
+        vc = cv2.VideoCapture(self.video_path)
         if self.w is None or self.h is None:
             res, image = vc.read()
             self.w = image.shape[1]
