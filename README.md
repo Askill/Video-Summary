@@ -28,20 +28,21 @@ On my configuration 1 minutes of of the original Video can be processed in about
 
 ./Application/Config.py
 
-        "min_area": 100,            min area in pixels
-        "max_area": 9000000,        max area in pixels
-        "threashold": 6,            luminance difference threashold
-        "resizeWidth": 1000,        video is scaled down internally
+        "min_area": 100,            min area in pixels, of a single contour, smaller is ignored
+        "max_area": 9000000,        max area in pixels, of a single contour, larger is ignored
+        "threashold": 6,            luminance difference threashold, sensitivity of movement detection
+        "resizeWidth": 600,         video is scaled down internally
         "inputPath": None,          overwritten in main.py
         "outputPath": None,         overwritten in main.py
-        "maxLayerLength": 5000,     max langth of Layer
-        "minLayerLength": 10,       min langth of Layer
-        "tolerance": 100,           max distance between contours to be aggragated into layer
+        "maxLayerLength": 5000,     max length of Layer in frames
+        "minLayerLength": 10,       min length of Layer in frames
+        "tolerance": 100,           max distance (in pixels) between contours to be aggragated into layer
         "maxLength": None,          
         "ttolerance": 60,           number of frames movement can be apart until a new layer is created
         "videoBufferLength": 100,   Buffer Length of Video Reader Componenent
-        "LayersPerContour": 220,    number of layers a single contour can belong to
-        "avgNum": 10,               number of images that should be averaged before calculating the difference
+        "LayersPerContour": 2,      number of layers a single contour can belong to
+        "avgNum": 10,               number of images that should be averaged before calculating the difference 
+                                    (computationally expensive, needed in outdoor scenarios due to clouds, leaves moving in the wind ...)
     
 
 ### notes:
