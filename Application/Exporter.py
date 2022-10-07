@@ -48,7 +48,7 @@ class Exporter:
                     frame_count, frame = video_reader.pop()
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     frame2 = np.copy(underlay)
-                    for (x, y, w, h) in layer.bounds[frame_count - layer.startFrame]:
+                    for (x, y, w, h) in layer.bounds[frame_count - layer.start_frame]:
                         if x is None:
                             continue
                         factor = video_reader.w / self.resize_width
@@ -82,30 +82,30 @@ class Exporter:
                 if frame_count % (60 * fps) == 0:
                     print("Minutes processed: ", frame_count / (60 * fps), end="\r")
                 if frame is None:
-                    print("ContourExtractor: frame was None")
+                    print("Exporter: frame was None")
                     continue
 
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 for layer in layers:
-                    if layer.startFrame <= frame_count and layer.startFrame + len(layer.bounds) > frame_count:
-                        for i in range(0, len(layer.bounds[frame_count - layer.startFrame])):
+                    if layer.start_frame <= frame_count and layer.start_frame + len(layer.bounds) > frame_count:
+                        for i in range(0, len(layer.bounds[frame_count - layer.start_frame])):
                             try:
-                                x, y, w, h = layer.bounds[frame_count - layer.startFrame][i]
+                                x, y, w, h = layer.bounds[frame_count - layer.start_frame][i]
                                 if None in (x, y, w, h):
                                     break
                                 factor = videoReader.w / self.resize_width
                                 x, y, w, h = (int(x * factor), int(y * factor), int(w * factor), int(h * factor))
 
                                 mask = self.get_mask(i, frame_count, layer, w, h)
-                                background = frames[frame_count - layer.startFrame + layer.exportOffset]
+                                background = frames[frame_count - layer.start_frame + layer.export_offset]
                                 self.add_masked_content(frame, x, y, w, h, mask, background)
-                                frames[frame_count - layer.startFrame + layer.exportOffset] = np.copy(background)
+                                frames[frame_count - layer.start_frame + layer.export_offset] = np.copy(background)
 
                                 if show_progress:
                                     cv2.imshow("changes x", background)
                                     cv2.waitKey(10) & 0xFF
 
-                                self.add_timestamp(frames[frame_count - layer.startFrame + layer.exportOffset], videoReader, frame_count, x, y, w, h)
+                                self.add_timestamp(frames[frame_count - layer.start_frame + layer.export_offset], videoReader, frame_count, x, y, w, h)
                             except:
                                 continue
 
@@ -144,7 +144,7 @@ class Exporter:
         )
 
     def get_mask(self, i, frame_count, layer, w, h):
-        mask = layer.masks[frame_count - layer.startFrame][i]
+        mask = layer.masks[frame_count - layer.start_frame][i]
         mask = imutils.resize(mask, width=w, height=h + 1)
         mask = np.resize(mask, (h, w))
         mask = cv2.erode(mask, None, iterations=10)
@@ -152,24 +152,24 @@ class Exporter:
         return mask
 
     def export_raw_data(self, layers, contours, masks):
-        with open(self.config["importPath"] + "_layers", "wb+") as file:
+        with open(self.config["cachePath"].split(".")[0] + "_layers.txt", "wb+") as file:
             pickle.dump(layers, file)
-        with open(self.config["importPath"] + "_contours", "wb+") as file:
+        with open(self.config["cachePath"].split(".")[0] + "_contours.txt", "wb+") as file:
             pickle.dump(contours, file)
-        with open(self.config["importPath"] + "_masks", "wb+") as file:
+        with open(self.config["cachePath"].split(".")[0] + "_masks.txt", "wb+") as file:
             pickle.dump(masks, file)
 
     def get_max_length_of_layers(self, layers):
         max_length = 0
         for layer in layers:
-            if layer.getLength() > max_length:
-                max_length = layer.getLength()
+            if layer.get_length() > max_length:
+                max_length = layer.get_length()
         return max_length
 
     def make_list_of_frames(self, layers):
         """Returns set of all Frames which are relevant to the Layers"""
         frame_numbers = set()
         for layer in layers:
-            frame_numbers.update(list(range(layer.startFrame, layer.startFrame + len(layer))))
+            frame_numbers.update(list(range(layer.start_frame, layer.start_frame + len(layer))))
 
         return sorted(list(frame_numbers))

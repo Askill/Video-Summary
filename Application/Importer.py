@@ -3,14 +3,14 @@ import os.path
 
 class Importer:
     def __init__(self, config):
-        self.path = config["importPath"]
+        self.path = config["cachePath"]
 
     def import_raw_data(self):
         print("Loading previous results")
 
-        layers = self.load_if_present(self.path + "_layers")
-        contours = self.load_if_present(self.path + "_contours")
-        masks = self.load_if_present(self.path + "_masks")
+        layers = self.load_if_present(self.path + "_layers.txt")
+        contours = self.load_if_present(self.path + "_contours.txt")
+        masks = self.load_if_present(self.path + "_masks.txt")
 
         return layers, contours, masks
 

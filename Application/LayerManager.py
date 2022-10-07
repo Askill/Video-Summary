@@ -82,7 +82,7 @@ class LayerManager:
                 frame_count, frame = video_reader.pop()
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 data = []
-                for (x, y, w, h) in layer.bounds[frame_count - layer.startFrame]:
+                for (x, y, w, h) in layer.bounds[frame_count - layer.start_frame]:
                     if x is None:
                         break
                     factor = video_reader.w / self.resize_width
@@ -99,7 +99,7 @@ class LayerManager:
             video_reader.thread.join()
 
     def sort_layers(self):
-        self.layers.sort(key=lambda c: c.startFrame)
+        self.layers.sort(key=lambda c: c.start_frame)
 
     def calc_time_offset(self):
         len_l = len(self.layers)
@@ -115,8 +115,8 @@ class LayerManager:
                         overlap = True
                         break
                 if overlap:
-                    self.layers[i].exportOffset += 20 * tries
+                    self.layers[i].export_offset += 20 * tries
                     tries += 1
 
-                # if self.layers[i].exportOffset >= 300000:
+                # if self.layers[i].export_offset >= 300000:
                 #    break

@@ -15,11 +15,11 @@ from Application.VideoReader import VideoReader
 def main(config):
     start_total = time.time()
 
-    if not os.path.exists(config["importPath"]):
-        contours, masks = ContourExtractor(config).extract_contours()
+    if os.path.exists(config["cachePath"] + "_layers.txt"):
+        layers, contours, masks = Importer(config).import_raw_data()
         layers = LayerFactory(config).extract_layers(contours, masks)
     else:
-        layers, contours, masks = Importer(config).import_raw_data()
+        contours, masks = ContourExtractor(config).extract_contours()
         layers = LayerFactory(config).extract_layers(contours, masks)
 
     layer_manager = LayerManager(config, layers)
@@ -32,7 +32,8 @@ def main(config):
     heatmap = HeatMap(
         config["w"], config["h"], [contour for layer in layer_manager.layers for contour in layer.bounds], 1920 / config["resizeWidth"]
     )
-    heatmap.save__image(config["outputPath"].split(".")[0] + "_heatmap.png")
+    heatmap.show_image()
+    #heatmap.save_image(config["outputPath"].split(".")[0] + "_heatmap.png") # not working yet
 
     print(f"Exporting {len(contours)} Contours and {len(layer_manager.layers)} Layers")
     Exporter(config).export(layer_manager.layers, contours, masks, raw=True, overlayed=True)
@@ -57,7 +58,7 @@ if __name__ == "__main__":
 
     config["inputPath"] = input_path
     config["outputPath"] = os.path.join(output_path, file_name)
-    config["importPath"] = os.path.join(output_path, file_name.split(".")[0] + ".txt")
+    config["cachePath"] = os.path.join(output_path, file_name.split(".")[0])
     config["w"], config["h"] = VideoReader(config).get_wh()
 
     main(config)

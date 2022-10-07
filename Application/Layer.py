@@ -13,7 +13,7 @@ class Layer:
     def __init__(self, start_frame, data, mask, config):
         """returns a Layer object
 
-        Layers are collections of contours with a StartFrame,
+        Layers are collections of contours with a start_frame,
         which is the number of the frame the first contour of
         this layer was extraced from
 
@@ -72,8 +72,8 @@ class Layer:
         """Checks for overlap in time between current and given layer"""
         s1 = self.export_offset
         e1 = self.last_frame - self.start_frame + self.export_offset
-        s2 = layer2.exportOffset
-        e2 = layer2.lastFrame - layer2.startFrame + layer2.exportOffset
+        s2 = layer2.export_offset
+        e2 = layer2.last_frame - layer2.start_frame + layer2.export_offset
 
         if s2 >= s1 and s2 <= e1:
             return True

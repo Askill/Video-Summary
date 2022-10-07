@@ -93,7 +93,7 @@ class LayerFactory:
         for layer in layers[1:]:
             for i, (contours, masks) in enumerate(zip(layer.bounds, layer.masks)):
                 for contour, mask in zip(contours, masks):
-                    merged_layers.add(layer.startFrame + i, contour, mask)
+                    merged_layers.add(layer.start_frame + i, contour, mask)
 
         for i, id in enumerate(found_layer_i_ds):
             del self.layers[id - i]
@@ -101,7 +101,7 @@ class LayerFactory:
         self.layers.append(merged_layers)
 
     def join_layers(self):
-        self.layers.sort(key=lambda c: c.startFrame)
+        self.layers.sort(key=lambda c: c.start_frame)
         min_frame = self.get_min_start(self.layers)
         max_frame = self.get_max_end(self.layers)
 
@@ -113,13 +113,13 @@ class LayerFactory:
             inner_max = self.get_max_end(p_l)
             for x in range(self.get_min_start(p_l), inner_max):
                 for lc, l in enumerate(p_l):
-                    if l.startFrame < x or l.lastFrame > x:
+                    if l.start_frame < x or l.last_frame > x:
                         continue
                     for lc2, l2 in enumerate(p_l):
                         if lc2 == lc:
                             continue
-                        for cnt in l.bounds[x - l.startFrame]:
-                            for cnt2 in l2.bounds[x - l2.startFrame]:
+                        for cnt in l.bounds[x - l.start_frame]:
+                            for cnt2 in l2.bounds[x - l2.start_frame]:
                                 if self.contours_overlay(cnt, cnt2):
                                     merge.add(indexes[lc])
                                     merge.add(indexes[lc2])
@@ -138,17 +138,17 @@ class LayerFactory:
         return (ret, ii)
 
     def get_min_start(self, layers):
-        min_frame = layers[0].startFrame
+        min_frame = layers[0].start_frame
         for l in layers:
-            if l.startFrame < min_frame:
-                min_frame = l.startFrame
+            if l.start_frame < min_frame:
+                min_frame = l.start_frame
         return min_frame
 
     def get_max_end(self, layers):
-        max_frame = layers[0].lastFrame
+        max_frame = layers[0].last_frame
         for l in layers:
-            if l.lastFrame < max_frame:
-                max_frame = l.lastFrame
+            if l.last_frame < max_frame:
+                max_frame = l.last_frame
         return max_frame
 
     def contours_overlay(self, l1, r1, l2, r2):
@@ -163,5 +163,5 @@ class LayerFactory:
         for layer_id in found_layer_i_ds:
             layers.append(self.layers[layer_id])
 
-        layers.sort(key=lambda c: c.startFrame)
+        layers.sort(key=lambda c: c.start_frame)
         return layers

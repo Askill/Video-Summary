@@ -1,6 +1,5 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from PIL import Image
 
 class HeatMap:
     def __init__(self, x, y, contours, resize_factor=1):
@@ -25,6 +24,5 @@ class HeatMap:
         plt.imshow(self.image_bw * 255)
         plt.show()
 
-    def save__image(self, path):
-        im = Image.fromarray(self.image_bw * 255)
-        im.save(path)
+    def save_image(self, path):
+        plt.imsave(path, (255 * self.image_bw).astype(np.uint8))
