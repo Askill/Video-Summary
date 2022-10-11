@@ -29,7 +29,7 @@ class ContourExtractor:
         self.extracted_masks = dict()
         self.min_area = config["min_area"]
         self.max_area = config["max_area"]
-        self.threashold = config["threashold"]
+        self.threshold = config["threshold"]
         self.resize_width = config["resizeWidth"]
         self.video_path = config["inputPath"]
         self.x_dim = 0
@@ -74,7 +74,7 @@ class ContourExtractor:
 
         gray = self.prepare_frame(frame)
         frame_delta = cv2.absdiff(gray, first_frame)
-        thresh = cv2.threshold(frame_delta, self.threashold, 255, cv2.THRESH_BINARY)[1]
+        thresh = cv2.threshold(frame_delta, self.threshold, 255, cv2.THRESH_BINARY)[1]
         # dilate the thresholded image to fill in holes, then find contours
         thresh = cv2.dilate(thresh, None, iterations=10)
         # cv2.imshow("changes x", thresh)

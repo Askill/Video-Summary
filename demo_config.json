@@ -1,0 +1,16 @@
+{
+  "min_area": 300,
+  "max_area": 900000,
+  "threshold": 7,
+  "resizeWidth": 700,
+  "inputPath": null,
+  "outputPath": null,
+  "maxLayerLength": 5000,
+  "minLayerLength": 40,
+  "tolerance": 20,
+  "maxLength": null,
+  "ttolerance": 50,
+  "videoBufferLength": 250,
+  "LayersPerContour": 220,
+  "avgNum": 10
+}

@@ -47,9 +47,11 @@ if __name__ == "__main__":
                         help='input video to extract movement from')
     parser.add_argument('output', metavar='output_dir', type=str, nargs="?", default="output",
                         help='output directory to save results and cached files into')
+    parser.add_argument('config', metavar='config', type=str, nargs="?", default=None,
+                        help='relative path to config.json')
     args = parser.parse_args()
 
-    config = Config()
+    config = Config(args.config)
 
     input_path = os.path.join(os.path.dirname(__file__), args.input)
     output_path = os.path.join(os.path.dirname(__file__), args.output)

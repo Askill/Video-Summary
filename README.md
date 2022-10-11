@@ -34,7 +34,7 @@ On my configuration 1 minutes of of the original Video can be processed in about
 
         "min_area": 100,            min area in pixels, of a single contour, smaller is ignored
         "max_area": 9000000,        max area in pixels, of a single contour, larger is ignored
-        "threashold": 6,            luminance difference threashold, sensitivity of movement detection
+        "threshold": 6,            luminance difference threshold, sensitivity of movement detection
         "resizeWidth": 600,         video is scaled down internally
         "inputPath": None,          overwritten in main.py
         "outputPath": None,         overwritten in main.py
