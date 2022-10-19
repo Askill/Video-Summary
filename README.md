@@ -4,7 +4,7 @@
 ## Example:
 
         usage:
-        main.py input_video.mp4 output_dir
+        main.py input_video.mp4 output_dir ?config_file.json
                  
 ![docs/demo.gif](./docs/demo.gif)  
 What you see above is a 15 second excerpt of a 2 minute overlayed synopsis of a 2.5h video from an on campus web cam.  
