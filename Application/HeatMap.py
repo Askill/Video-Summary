@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
+
 class HeatMap:
     def __init__(self, x, y, contours, resize_factor=1):
         self.image_bw = np.zeros(shape=[y, x, 3], dtype=np.float64)

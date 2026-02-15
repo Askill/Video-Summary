@@ -86,7 +86,7 @@ class ContourExtractor:
         masks = []
         for c in cnts:
             ca = cv2.contourArea(c)
-            (x, y, w, h) = cv2.boundingRect(c)
+            x, y, w, h = cv2.boundingRect(c)
             if ca < self.min_area or ca > self.max_area:
                 continue
             contours.append((x, y, w, h))

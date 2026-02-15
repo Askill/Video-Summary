@@ -29,7 +29,7 @@ class Exporter:
     def export_layers(self, layers):
         list_of_frames = self.make_list_of_frames(layers)
         with VideoReader(self.config, list_of_frames) as video_reader:
-            
+
             underlay = cv2.VideoCapture(self.footage_path).read()[1]
             underlay = cv2.cvtColor(underlay, cv2.COLOR_BGR2RGB)
 
@@ -48,7 +48,7 @@ class Exporter:
                     frame_count, frame = video_reader.pop()
                     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     frame2 = np.copy(underlay)
-                    for (x, y, w, h) in layer.bounds[frame_count - layer.start_frame]:
+                    for x, y, w, h in layer.bounds[frame_count - layer.start_frame]:
                         if x is None:
                             continue
                         factor = video_reader.w / self.resize_width
@@ -105,7 +105,9 @@ class Exporter:
                                     cv2.imshow("changes x", background)
                                     cv2.waitKey(10) & 0xFF
 
-                                self.add_timestamp(frames[frame_count - layer.start_frame + layer.export_offset], videoReader, frame_count, x, y, w, h)
+                                self.add_timestamp(
+                                    frames[frame_count - layer.start_frame + layer.export_offset], videoReader, frame_count, x, y, w, h
+                                )
                             except:
                                 continue
 

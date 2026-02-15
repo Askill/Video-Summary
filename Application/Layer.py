@@ -63,7 +63,9 @@ class Layer:
         for b1s, b2s in zip(bounds[::10], layer2.bounds[:max_len:10]):
             for b1 in b1s:
                 for b2 in b2s:
-                    if self.contours_overlay((b1[0], b1[1] + b1[3]), (b1[0] + b1[2], b1[1]), (b2[0], b2[1] + b2[3]), (b2[0] + b2[2], b2[1])):
+                    if self.contours_overlay(
+                        (b1[0], b1[1] + b1[3]), (b1[0] + b1[2], b1[1]), (b2[0], b2[1] + b2[3]), (b2[0] + b2[2], b2[1])
+                    ):
                         overlap = True
                         break
         return overlap
