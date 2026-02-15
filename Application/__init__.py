@@ -28,7 +28,7 @@ except ImportError as e:
     import warnings
 
     warnings.warn(
-        f"Video processing components could not be imported. Missing dependency: {e.name if hasattr(e, 'name') else str(e)}. "
+        f"Video processing components could not be imported. Missing dependency: {str(e)}. "
         f"Install with: pip install -r requirements.txt"
     )
 
