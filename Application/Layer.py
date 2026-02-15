@@ -2,8 +2,6 @@
 
 from typing import Any, Dict, List, Optional, Tuple
 
-import cv2
-import imutils
 import numpy as np
 
 

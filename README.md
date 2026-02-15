@@ -77,22 +77,57 @@ The heatmap shows areas of activity throughout the video, with brighter regions 
 
 ## ⚙️ Configuration
 
-Create a JSON configuration file to customize processing parameters:
+Video-Summary supports both JSON and YAML configuration files. YAML is recommended for its readability and support for comments.
 
-```json
-{
-  "min_area": 300,
-  "max_area": 900000,
-  "threshold": 7,
-  "resizeWidth": 700,
-  "maxLayerLength": 5000,
-  "minLayerLength": 40,
-  "tolerance": 20,
-  "ttolerance": 50,
-  "videoBufferLength": 250,
-  "LayersPerContour": 220,
-  "avgNum": 10
-}
+### Example YAML Configuration
+
+```yaml
+# Detection sensitivity
+min_area: 300           # Minimum contour area in pixels
+max_area: 900000        # Maximum contour area in pixels
+threshold: 7            # Movement detection sensitivity (lower = more sensitive)
+
+# Processing parameters
+resizeWidth: 700        # Processing width (smaller = faster but less accurate)
+videoBufferLength: 250  # Frame buffer size
+
+# Layer management
+maxLayerLength: 5000    # Maximum frames per layer
+minLayerLength: 40      # Minimum frames per layer
+tolerance: 20           # Pixel distance for grouping contours
+ttolerance: 50          # Frame gap tolerance
+
+# Advanced
+LayersPerContour: 220   # Max layers per contour
+avgNum: 10              # Frame averaging (higher = less noise, slower)
+```
+
+### Pre-configured Profiles
+
+Use the provided configuration profiles in the `configs/` directory:
+
+```bash
+# Default balanced settings
+python main.py video.mp4 output configs/default.yaml
+
+# High sensitivity - detect smaller movements
+python main.py video.mp4 output configs/high-sensitivity.yaml
+
+# Low sensitivity - outdoor scenes, reduce noise
+python main.py video.mp4 output configs/low-sensitivity.yaml
+
+# Fast processing - optimized for speed
+python main.py video.mp4 output configs/fast.yaml
+```
+
+### Environment Variable Overrides
+
+Override any configuration parameter using environment variables:
+
+```bash
+export VIDEO_SUMMARY_THRESHOLD=10
+export VIDEO_SUMMARY_MIN_AREA=500
+python main.py video.mp4 output
 ```
 
 ### Configuration Parameters

@@ -1,0 +1,21 @@
+# Low Sensitivity Configuration
+# Use for outdoor scenes with weather changes, or to focus on larger movements
+
+min_area: 500           # Higher threshold ignores small noise
+max_area: 900000
+threshold: 12           # Higher threshold = less sensitive, reduces false positives
+
+resizeWidth: 700
+videoBufferLength: 250
+
+maxLayerLength: 5000
+minLayerLength: 60      # Require longer sustained movement
+tolerance: 15           # Stricter position matching
+ttolerance: 80          # Longer gap tolerance
+LayersPerContour: 220
+
+avgNum: 20              # More averaging to smooth out noise (clouds, leaves, etc.)
+
+inputPath: null
+outputPath: null
+maxLength: null

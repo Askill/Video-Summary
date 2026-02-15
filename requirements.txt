@@ -10,6 +10,9 @@ imageio-ffmpeg>=0.4.0
 # Visualization
 matplotlib>=3.3.0
 
+# Configuration
+pyyaml>=6.0
+
 # Optional: Machine Learning (for classification features)
 # Uncomment if you need TensorFlow support:
 # tensorflow>=2.10.0,<3.0.0

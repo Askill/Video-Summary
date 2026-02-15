@@ -1,0 +1,28 @@
+# Default Configuration for Video Summary
+# This is a YAML configuration file with explanatory comments
+
+# Contour detection parameters
+min_area: 300           # Minimum contour area in pixels (smaller contours ignored)
+max_area: 900000        # Maximum contour area in pixels (larger contours ignored)
+threshold: 7            # Luminance difference threshold for movement detection (lower = more sensitive)
+
+# Video processing
+resizeWidth: 700        # Video width for processing (reduces memory usage and speeds up processing)
+videoBufferLength: 250  # Number of frames to buffer in memory
+
+# Layer management
+maxLayerLength: 5000    # Maximum length of a layer in frames
+minLayerLength: 40      # Minimum length of a layer in frames (shorter layers discarded)
+tolerance: 20           # Maximum distance in pixels between contours to group into same layer
+ttolerance: 50          # Number of frames a movement can be absent before creating a new layer
+LayersPerContour: 220   # Maximum number of layers a single contour can belong to
+
+# Advanced options
+avgNum: 10              # Number of frames to average before calculating difference
+                        # Higher values reduce noise but increase computation time
+                        # Useful for outdoor scenes with clouds, wind, etc.
+
+# Paths (typically overridden by CLI arguments)
+inputPath: null
+outputPath: null
+maxLength: null
