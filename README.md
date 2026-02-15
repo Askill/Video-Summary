@@ -35,6 +35,21 @@ pip install -r requirements.txt
 sudo apt-get install ffmpeg libsm6 libxext6 libxrender-dev
 ```
 
+### Docker Installation (Recommended)
+
+For a consistent environment without system dependency issues:
+
+```bash
+# Build the Docker image
+docker build -t video-summary .
+
+# Run with Docker
+docker run -v $(pwd)/input:/app/input -v $(pwd)/output:/app/output video-summary /app/input/video.mp4 /app/output
+
+# Or use Docker Compose
+docker-compose run --rm video-summary /app/input/video.mp4 /app/output
+```
+
 ### Basic Usage
 
 ```bash

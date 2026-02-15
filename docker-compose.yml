@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  video-summary:
+    build: .
+    image: video-summary:latest
+    volumes:
+      # Mount your video files and output directory
+      - ./input:/app/input:ro
+      - ./output:/app/output
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Example: Process a video with default settings
+    # command: /app/input/video.mp4 /app/output
+    
+    # Example: Process with custom config
+    # command: /app/input/video.mp4 /app/output /app/input/config.json
+
+# Usage:
+# 1. Place your video files in ./input/
+# 2. Run: docker-compose run --rm video-summary /app/input/your_video.mp4 /app/output
+# 3. Find results in ./output/

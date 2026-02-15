@@ -1,17 +1,48 @@
+"""Video reading utility with buffering support."""
+
 import multiprocessing
 import os
 import queue
 import threading
+from typing import Optional, Set, Tuple
 
 import cv2
 
 
 class VideoReader:
-    list_of_frames = None
-    w = None
-    h = None
+    """
+    Asynchronous video reader with frame buffering.
 
-    def __init__(self, config, set_of_frames=None, multiprocess=False):
+    This class provides efficient video reading by using a separate thread/process
+    to continuously load frames into a buffer, improving I/O performance for video
+    processing pipelines.
+
+    Attributes:
+        list_of_frames: Optional list of specific frame numbers to read
+        w: Video width in pixels
+        h: Video height in pixels
+    """
+
+    list_of_frames: Optional[list] = None
+    w: Optional[int] = None
+    h: Optional[int] = None
+
+    def __init__(self, config, set_of_frames: Optional[Set[int]] = None, multiprocess: bool = False):
+        """
+        Initialize VideoReader.
+
+        Args:
+            config: Configuration dictionary containing:
+                - inputPath: Path to video file
+                - videoBufferLength: Size of frame buffer
+            set_of_frames: Optional set of specific frame numbers to read.
+                          If None, reads all frames.
+            multiprocess: If True, uses multiprocessing for buffer.
+                         If False, uses threading (default).
+
+        Raises:
+            Exception: If video_path is not provided in config.
+        """
         video_path = config["inputPath"]
         if video_path is None:
             raise Exception("ERROR: Video reader needs a video_path!")
@@ -33,22 +64,38 @@ class VideoReader:
             self.list_of_frames = sorted(set_of_frames)
 
     def __enter__(self):
+        """Context manager entry - starts buffer filling."""
         self.fill_buffer()
         return self
 
     def __exit__(self, type, value, traceback):
+        """Context manager exit - stops video reading."""
         self.stop()
 
     def stop(self):
+        """Stop the video reading thread and wait for it to complete."""
         self.thread.join()
 
-    def pop(self):
+    def pop(self) -> Tuple[int, Optional[any]]:
+        """
+        Pop next frame from buffer.
+
+        Returns:
+            Tuple of (frame_number, frame). Frame is None when video ends.
+        """
         frame_number, frame = self.buffer.get(block=True)
         if frame is None:
             self.stopped = True
         return frame_number, frame
 
-    def fill_buffer(self, list_of_frames=None):
+    def fill_buffer(self, list_of_frames: Optional[list] = None):
+        """
+        Start asynchronous buffer filling.
+
+        Args:
+            list_of_frames: Optional list of specific frame numbers to read.
+                          If None, reads all frames sequentially.
+        """
         self.end_frame = int(cv2.VideoCapture(self.video_path).get(cv2.CAP_PROP_FRAME_COUNT))
         if list_of_frames is not None:
             self.list_of_frames = list_of_frames
@@ -66,7 +113,7 @@ class VideoReader:
         self.thread.start()
 
     def read_frames(self):
-        """Reads video from start to finish"""
+        """Read video frames sequentially from start to finish."""
         self.vc = cv2.VideoCapture(self.video_path)
         while self.last_frame < self.end_frame:
             res, frame = self.vc.read()
