@@ -74,12 +74,19 @@ def main(config: Config) -> int:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Extract movement from static camera recording",
+        description="Video-Summary: Extract movement from static camera recordings",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   %(prog)s input_video.mp4 output_dir
-  %(prog)s input_video.mp4 output_dir custom_config.json
+  %(prog)s input_video.mp4 output_dir configs/default.yaml
+  %(prog)s input_video.mp4 output_dir configs/high-sensitivity.yaml --verbose
+
+Configuration:
+  Supports both JSON and YAML config files.
+  Use environment variables for overrides: VIDEO_SUMMARY_THRESHOLD=10
+
+For more information, see: https://github.com/Askill/Video-Summary
         """,
     )
     parser.add_argument("input", metavar="input_file", type=str, help="Input video file to extract movement from")
@@ -91,8 +98,16 @@ Examples:
         default="output",
         help="Output directory to save results and cached files (default: output)",
     )
-    parser.add_argument("config", metavar="config", type=str, nargs="?", default=None, help="Path to configuration JSON file (optional)")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
+    parser.add_argument(
+        "config",
+        metavar="config",
+        type=str,
+        nargs="?",
+        default=None,
+        help="Path to configuration file (JSON or YAML, optional)",
+    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose/debug logging")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
 
     args = parser.parse_args()
 

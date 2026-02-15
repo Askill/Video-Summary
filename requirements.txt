@@ -13,6 +13,9 @@ matplotlib>=3.3.0
 # Configuration
 pyyaml>=6.0
 
+# Progress bars
+tqdm>=4.60.0
+
 # Optional: Machine Learning (for classification features)
 # Uncomment if you need TensorFlow support:
 # tensorflow>=2.10.0,<3.0.0
