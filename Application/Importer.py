@@ -1,5 +1,6 @@
-import pickle
 import os.path
+import pickle
+
 
 class Importer:
     def __init__(self, config):

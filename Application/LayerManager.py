@@ -4,11 +4,19 @@ from multiprocessing.pool import ThreadPool
 import cv2
 import numpy as np
 
-from Application.Classifiers.Classifier import Classifier
 from Application.Config import Config
 from Application.Exporter import Exporter
 from Application.Layer import Layer
 from Application.VideoReader import VideoReader
+
+# Optional: Classifier (requires TensorFlow)
+try:
+    from Application.Classifiers.Classifier import Classifier
+
+    CLASSIFIER_AVAILABLE = True
+except ImportError:
+    CLASSIFIER_AVAILABLE = False
+    Classifier = None
 
 
 class LayerManager:
@@ -36,7 +44,7 @@ class LayerManager:
         print("Before deleting sparse layers ", len(self.layers))
         self.delete_sparse()
         print("after deleting sparse layers ", len(self.layers))
-        #self.calcTimeOffset()
+        # self.calcTimeOffset()
 
     def delete_sparse(self):
         to_delete = []
@@ -82,7 +90,7 @@ class LayerManager:
                 frame_count, frame = video_reader.pop()
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 data = []
-                for (x, y, w, h) in layer.bounds[frame_count - layer.start_frame]:
+                for x, y, w, h in layer.bounds[frame_count - layer.start_frame]:
                     if x is None:
                         break
                     factor = video_reader.w / self.resize_width

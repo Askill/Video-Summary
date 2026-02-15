@@ -1,0 +1,21 @@
+# Fast Processing Configuration
+# Optimized for speed over quality
+
+min_area: 400
+max_area: 900000
+threshold: 8
+
+resizeWidth: 480        # Lower resolution = faster processing
+videoBufferLength: 100  # Smaller buffer = less memory
+
+maxLayerLength: 3000
+minLayerLength: 30
+tolerance: 25
+ttolerance: 60
+LayersPerContour: 150   # Fewer layers per contour
+
+avgNum: 5               # Minimal averaging
+
+inputPath: null
+outputPath: null
+maxLength: null

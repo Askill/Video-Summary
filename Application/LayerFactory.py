@@ -61,7 +61,7 @@ class LayerFactory:
         frame_number = data[0]
         bounds = data[1]
         mask = data[2]
-        (x, y, w, h) = bounds
+        x, y, w, h = bounds
         tol = self.tolerance
 
         found_layer_i_ds = set()
@@ -75,7 +75,7 @@ class LayerFactory:
             for j, bounds in enumerate(sorted(last_bounds, reverse=True)):
                 if bounds is None:
                     break
-                (x2, y2, w2, h2) = bounds
+                x2, y2, w2, h2 = bounds
                 if self.contours_overlay((x - tol, y + h + tol), (x + w + tol, y - tol), (x2, y2 + h2), (x2 + w2, y2)):
                     layer.add(frame_number, (x, y, w, h), mask)
                     found_layer_i_ds.add(i)

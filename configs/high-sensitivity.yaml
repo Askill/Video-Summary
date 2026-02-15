@@ -1,0 +1,21 @@
+# High Sensitivity Configuration
+# Use for detecting smaller movements or objects
+
+min_area: 100           # Lower threshold to detect smaller objects
+max_area: 900000
+threshold: 4            # Lower threshold = more sensitive to changes
+
+resizeWidth: 700
+videoBufferLength: 250
+
+maxLayerLength: 5000
+minLayerLength: 20      # Allow shorter layers
+tolerance: 30           # More tolerant of position changes
+ttolerance: 40          # Shorter gap tolerance
+LayersPerContour: 220
+
+avgNum: 5               # Less averaging for faster response
+
+inputPath: null
+outputPath: null
+maxLength: null
