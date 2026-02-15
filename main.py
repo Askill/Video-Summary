@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import sys
 import time
@@ -113,7 +114,7 @@ For more information, see: https://github.com/Askill/Video-Summary
 
     # Setup logging level
     if args.verbose:
-        setup_logger(level=10)  # DEBUG level
+        setup_logger(level=logging.DEBUG)
 
     try:
         # Load configuration
@@ -131,12 +132,12 @@ For more information, see: https://github.com/Askill/Video-Summary
         # Create output directory if it doesn't exist
         os.makedirs(output_path, exist_ok=True)
 
-        file_name = input_path.split("/")[-1]
+        file_name = os.path.basename(input_path)
 
         # Configure paths
         config["inputPath"] = input_path
         config["outputPath"] = os.path.join(output_path, file_name)
-        config["cachePath"] = os.path.join(output_path, file_name.split(".")[0])
+        config["cachePath"] = os.path.join(output_path, os.path.splitext(file_name)[0])
 
         # Get video dimensions
         logger.info("Reading video dimensions...")

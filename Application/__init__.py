@@ -27,7 +27,10 @@ try:
 except ImportError as e:
     import warnings
 
-    warnings.warn(f"Some video processing components could not be imported: {e}")
+    warnings.warn(
+        f"Video processing components could not be imported. Missing dependency: {e.name if hasattr(e, 'name') else str(e)}. "
+        f"Install with: pip install -r requirements.txt"
+    )
 
 # Try to import LayerManager (may require TensorFlow for classification features)
 try:
@@ -38,4 +41,3 @@ except ImportError:
     import warnings
 
     warnings.warn("LayerManager could not be imported. TensorFlow may be required for classification features.")
-

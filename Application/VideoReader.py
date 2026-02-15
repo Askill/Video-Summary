@@ -76,7 +76,7 @@ class VideoReader:
         """Stop the video reading thread and wait for it to complete."""
         self.thread.join()
 
-    def pop(self) -> Tuple[int, Optional[any]]:
+    def pop(self) -> Tuple[int, Optional["np.ndarray"]]:
         """
         Pop next frame from buffer.
 

@@ -1,5 +1,7 @@
 """Tests for Logger module."""
+
 import logging
+import os
 import tempfile
 
 from Application.Logger import get_logger, setup_logger
@@ -25,13 +27,18 @@ class TestLogger:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".log", delete=False) as f:
             log_file = f.name
 
-        logger = setup_logger(name="test_logger_3", log_file=log_file)
-        logger.info("Test message")
+        try:
+            logger = setup_logger(name="test_logger_3", log_file=log_file)
+            logger.info("Test message")
 
-        # Verify file was created and has content
-        with open(log_file, "r") as f:
-            content = f.read()
-            assert "Test message" in content
+            # Verify file was created and has content
+            with open(log_file, "r") as f:
+                content = f.read()
+                assert "Test message" in content
+        finally:
+            # Cleanup the log file
+            if os.path.exists(log_file):
+                os.unlink(log_file)
 
     def test_get_logger(self):
         """Test getting an existing logger."""

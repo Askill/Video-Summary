@@ -11,9 +11,12 @@ try:
 except ImportError:
     YAML_AVAILABLE = False
 
-from Application.Logger import get_logger
 
-logger = get_logger(__name__)
+def _get_logger():
+    """Lazy load logger to avoid circular imports."""
+    from Application.Logger import get_logger
+
+    return get_logger(__name__)
 
 
 class Config:
@@ -50,6 +53,7 @@ class Config:
                         If None or invalid, uses defaults.
                         Supports .json, .yaml, and .yml extensions.
         """
+        logger = _get_logger()
         if config_path and os.path.isfile(config_path):
             logger.info(f"Using supplied configuration at {config_path}")
             try:
@@ -104,6 +108,7 @@ class Config:
 
     def _apply_env_overrides(self):
         """Apply environment variable overrides to configuration."""
+        logger = _get_logger()
         env_prefix = "VIDEO_SUMMARY_"
         for key in self.c.keys():
             env_key = f"{env_prefix}{key.upper()}"

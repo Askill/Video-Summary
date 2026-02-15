@@ -1,4 +1,5 @@
 """Tests for Config module."""
+
 import json
 import os
 import tempfile
@@ -100,11 +101,8 @@ threshold: 15
         finally:
             os.unlink(temp_path)
 
-    def test_env_override(self):
+    def test_env_override(self, monkeypatch):
         """Test environment variable override."""
-        os.environ["VIDEO_SUMMARY_MIN_AREA"] = "999"
-        try:
-            config = Config(None)
-            assert config["min_area"] == 999
-        finally:
-            del os.environ["VIDEO_SUMMARY_MIN_AREA"]
+        monkeypatch.setenv("VIDEO_SUMMARY_MIN_AREA", "999")
+        config = Config(None)
+        assert config["min_area"] == 999
